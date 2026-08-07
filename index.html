@@ -9,8 +9,10 @@
 <meta property="og:type" content="website">
 <meta property="og:title" content="Pixasi - Anuj Singh">
 <meta property="og:description" content="Visuals, video and creative tech. A one-person studio.">
+<meta property="og:url" content="https://pixasi-studio.github.io/">
 <meta property="og:site_name" content="Pixasi">
 <meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://pixasi-studio.github.io/">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230F1114'/%3E%3Crect x='9' y='9' width='14' height='14' fill='%234FDDEC'/%3E%3C/svg%3E">
 <style>
 *,*::before,*::after{box-sizing:border-box}
@@ -469,22 +471,27 @@ function rng(seed){let a=seed>>>0;return function(){a|=0;a=a+0x6D2B79F5|0;let t=
 const IG = "https://instagram.com/pixasi";
 const WORK = [
   {t:"Video &mdash; 01",cat:"film",kind:"Video",dur:"Reel",seed:11,
+   url:"https://www.instagram.com/reel/Dbq1pjRB6HN/",
+   d:"A reel from the feed. Open it on Instagram for the full clip, sound and caption.",
+   s:[["By","Anuj Singh"],["Discipline","Video"],["Where","@pixasi"],["Format","Reel"]]},
+  {t:"Video &mdash; 02",cat:"film",kind:"Video",dur:"Post",seed:23,
    url:"https://www.instagram.com/p/Dbvpzu4geE4/",
-   d:"Posted to the feed. Open it on Instagram for the full clip, sound and caption.",
-   s:[["By","Anuj Singh"],["Discipline","Video"],["Where","@pixasi"],["Format","Reel"]]},
-  {t:"Video &mdash; 02",cat:"film",kind:"Video",dur:"Reel",seed:23,url:IG,
-   d:"Posted to the feed. Open it on Instagram for the full clip, sound and caption.",
-   s:[["By","Anuj Singh"],["Discipline","Video"],["Where","@pixasi"],["Format","Reel"]]},
-  {t:"Visuals &mdash; 01",cat:"motion",kind:"Visuals",dur:"Still",seed:36,url:IG,
+   d:"Posted to the feed. Open it on Instagram for the full piece and caption.",
+   s:[["By","Anuj Singh"],["Discipline","Video"],["Where","@pixasi"],["Format","Post"]]},
+  {t:"Visuals &mdash; 01",cat:"motion",kind:"Visuals",dur:"Post",seed:36,
+   url:"https://www.instagram.com/p/DbvLDY0AWeh/",
    d:"Posted to the feed. Open it on Instagram for the full set and caption.",
    s:[["By","Anuj Singh"],["Discipline","Visuals"],["Where","@pixasi"],["Format","Post"]]},
-  {t:"Visuals &mdash; 02",cat:"motion",kind:"Visuals",dur:"Still",seed:53,url:IG,
+  {t:"Visuals &mdash; 02",cat:"motion",kind:"Visuals",dur:"Post",seed:53,
+   url:"https://www.instagram.com/p/Dbtd6R2ge2m/",
    d:"Posted to the feed. Open it on Instagram for the full set and caption.",
    s:[["By","Anuj Singh"],["Discipline","Visuals"],["Where","@pixasi"],["Format","Post"]]},
-  {t:"Tech &mdash; 01",cat:"tech",kind:"Creative tech",dur:"Build",seed:71,url:IG,
+  {t:"Tech &mdash; 01",cat:"tech",kind:"Creative tech",dur:"Post",seed:71,
+   url:"https://www.instagram.com/p/DbbWlNfCVej/",
    d:"A build, a tool, or a piece of process. Open it on Instagram for the walkthrough.",
    s:[["By","Anuj Singh"],["Discipline","Creative tech"],["Where","@pixasi"],["Format","Post"]]},
-  {t:"Tech &mdash; 02",cat:"tech",kind:"Creative tech",dur:"Build",seed:90,url:IG,
+  {t:"Tech &mdash; 02",cat:"tech",kind:"Creative tech",dur:"Post",seed:90,
+   url:"https://www.instagram.com/p/DbZKhRjjSIx/",
    d:"A build, a tool, or a piece of process. Open it on Instagram for the walkthrough.",
    s:[["By","Anuj Singh"],["Discipline","Creative tech"],["Where","@pixasi"],["Format","Post"]]}
 ];
@@ -686,7 +693,7 @@ function paintLb(){
 function openLb(i){
   lastFocus = document.activeElement;
   lbIdx = i; lb.setAttribute("open",""); document.body.style.overflow = "hidden";
-  requestAnimationFrame(paintLb);
+  paintLb();  // synchronous: the panel is laid out the moment [open] is set
   document.getElementById("lb-close").focus();
 }
 function closeLb(){
