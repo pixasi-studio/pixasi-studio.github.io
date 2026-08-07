@@ -71,6 +71,19 @@ button,input,select,textarea{font:inherit;color:inherit}
 
 *,*::before,*::after{box-sizing:border-box;}
 html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;}
+/* faint machine grid behind everything - the tech substrate */
+body::before{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:
+    linear-gradient(to right, color-mix(in srgb,var(--ink) 6%,transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb,var(--ink) 6%,transparent) 1px, transparent 1px);
+  background-size:clamp(48px,7vw,86px) clamp(48px,7vw,86px);
+  mask-image:radial-gradient(ellipse 120% 90% at 50% 0%, #000 20%, transparent 78%);
+  opacity:.7;
+}
+main,.bar,.rail,.lb{position:relative;z-index:1;}
+/* stop iOS painting a grey box over every tap */
+a,button{-webkit-tap-highlight-color:transparent;}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
 body{
   margin:0;background:var(--paper);color:var(--ink);
@@ -149,6 +162,25 @@ a{color:inherit;}
 .chap:hover .nm,.chap.on .nm{opacity:1;transform:none;}
 @media (max-width:1080px){.rail{display:none;}}
 
+/* mobile stand-in for the rail: scrub bar + live chapter readout under the header */
+.mrail{display:none;}
+@media (max-width:1080px){
+  .mrail{
+    display:flex;align-items:center;gap:10px;
+    position:fixed;top:56px;left:0;right:0;z-index:59;
+    padding:6px var(--gutter) 7px;
+    background:color-mix(in srgb,var(--paper) 88%,transparent);
+    backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--line);
+    font-family:'DMMono',monospace;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--muted);
+  }
+  .mrail .tc{color:var(--accent);}
+  .mrail .track{position:relative;flex:1;height:2px;background:var(--line-soft);overflow:hidden;}
+  .mrail .fill{position:absolute;inset:0 auto 0 0;width:0;background:linear-gradient(90deg,var(--accent-bright),var(--spark));}
+  section{scroll-margin-top:92px;}
+}
+
 /* ---------- page frame ---------- */
 main{padding-left:0;}
 @media (min-width:1081px){main{padding-left:var(--rail-w);}}
@@ -221,6 +253,19 @@ section{padding-block:var(--step);scroll-margin-top:56px;}
 .svc article:hover::after{transform:scaleX(1);}
 .svc .idx{transition:letter-spacing .35s ease;}
 .svc article:hover .idx{letter-spacing:.3em;}
+
+/* touch has no hover - scrolling a card into the middle of the screen
+   stands in for it, driven by .seen */
+@media (hover:none){
+  .card.seen .frame{transform:translateY(-3px);box-shadow:var(--shadow);border-color:var(--ink-2);}
+  .card.seen .t{color:var(--accent);}
+  .svc article.seen::after{transform:scaleX(1);}
+  .svc article.seen .idx{letter-spacing:.3em;}
+  .fact.seen{padding-left:12px;}
+  .fact.seen::before{transform:scaleY(1);}
+  .fact.seen dt{color:var(--accent);}
+  .stage .sig{color:var(--accent);}
+}
 
 /* ---------- work ---------- */
 .work-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:22px;margin-bottom:34px;}
@@ -381,6 +426,12 @@ footer{border-top:1px solid var(--line);padding-block:34px 46px;color:var(--mute
 </header>
 
 <div class="rail" id="rail" aria-hidden="true"><div class="prog" id="prog"></div></div>
+
+<div class="mrail" aria-hidden="true">
+  <span class="tc" id="m-tc">00:00</span>
+  <span class="track"><span class="fill" id="m-fill"></span></span>
+  <span id="m-nm">Signal</span>
+</div>
 
 <main id="top">
 
@@ -729,24 +780,25 @@ WORK.forEach((item, i) => {
   const rec = {el:b, cv, item, phase:0, raf:0};
   cards.push(rec);
 
-  if(!RM){
-    b.addEventListener("pointerenter", () => {
-      const t0 = performance.now();
-      const loop = (t) => {
-        const p = ((t-t0)/2600) % 1;
-        rec.phase = p*6;
-        scrub.style.width = (p*100)+"%";
-        renderFrame(cv, item, rec.phase);
-        rec.raf = requestAnimationFrame(loop);
-      };
-      cancelAnimationFrame(rec.raf);
+  rec.play = () => {
+    if(RM || rec.raf) return;
+    const t0 = performance.now() - rec.phase/6*2600;
+    const loop = (t) => {
+      const p = ((t-t0)/2600) % 1;
+      rec.phase = p*6;
+      scrub.style.width = (p*100)+"%";
+      renderFrame(cv, item, rec.phase);
       rec.raf = requestAnimationFrame(loop);
-    });
-    b.addEventListener("pointerleave", () => {
-      cancelAnimationFrame(rec.raf);
-      rec.phase = 0; scrub.style.width = "0";
-      renderFrame(cv, item, 0);
-    });
+    };
+    rec.raf = requestAnimationFrame(loop);
+  };
+  rec.stop = (reset) => {
+    cancelAnimationFrame(rec.raf); rec.raf = 0;
+    if(reset){ rec.phase = 0; scrub.style.width = "0"; renderFrame(cv, item, 0); }
+  };
+  if(!RM){
+    b.addEventListener("pointerenter", rec.play);
+    b.addEventListener("pointerleave", () => rec.stop(true));
   }
   b.addEventListener("click", () => openLb(i));
 });
@@ -763,6 +815,20 @@ document.querySelectorAll(".filters button").forEach(btn => {
     });
   });
 });
+
+/* On touch there is no hover, so a card plays whenever it is the one
+   sitting in the middle of the screen. */
+const COARSE = matchMedia("(hover: none), (pointer: coarse)").matches;
+if(COARSE && !RM){
+  const io = new IntersectionObserver(es => {
+    es.forEach(e => {
+      const rec = cards.find(c => c.el === e.target);
+      if(!rec) return;
+      e.isIntersecting ? rec.play() : rec.stop(false);
+    });
+  }, {rootMargin:"-25% 0px -25% 0px", threshold:0});
+  cards.forEach(rec => io.observe(rec.el));
+}
 
 /* ---------- grid / list view ---------- */
 const vGrid = document.getElementById("v-grid");
@@ -865,6 +931,7 @@ function drawWordmark(t){
   const ink = css("--ink");
   const accent = css("--accent-bright");
   const s = cell * 0.72;
+  const lit = [];               // nodes inside the activation radius
   for(let i=0;i<cells.length;i++){
     const p = cells[i];
     let near = 0;
@@ -887,6 +954,32 @@ function drawWordmark(t){
     wctx.fillStyle = near > 0.35 ? accent : ink;
     const sz = s * (1 + near*0.55);
     wctx.fillRect(p.x - sz/2, p.y - sz/2 + wob, sz, sz);
+    if(near > 0.18) lit.push(p, near);
+  }
+
+  /* wire the activated nodes together - the field reads as a network,
+     not just a scatter of squares. Capped so it stays cheap on phones. */
+  if(lit.length && !RM){
+    wctx.save();
+    wctx.strokeStyle = accent;
+    wctx.lineWidth = 1;
+    const R = cell * 3.4, R2 = R * R;
+    const max = 380;
+    let drawn = 0;
+    for(let a = 0; a < lit.length && drawn < max; a += 2){
+      for(let b = a + 2; b < lit.length && drawn < max; b += 2){
+        const p = lit[a], q = lit[b];
+        const dx = p.x - q.x, dy = p.y - q.y;
+        const d2 = dx*dx + dy*dy;
+        if(d2 > R2 || d2 < 4) continue;
+        const strength = (1 - Math.sqrt(d2)/R) * Math.min(lit[a+1], lit[b+1]);
+        if(strength < 0.12) continue;
+        wctx.globalAlpha = strength * 0.55;
+        wctx.beginPath(); wctx.moveTo(p.x, p.y); wctx.lineTo(q.x, q.y); wctx.stroke();
+        drawn++;
+      }
+    }
+    wctx.restore();
   }
 }
 
@@ -896,14 +989,43 @@ function paintAll(){
   drawWordmark(performance.now());
 }
 
-wm.addEventListener("pointermove", e => {
+/* Touch devices never fire hover, so the field is driven three ways:
+   a real pointer, a finger dragged across it, and - failing both - an
+   automatic sweep so the thing is alive the moment the page opens. */
+let userDrove = 0;              // timestamp of the last genuine input
+function aimAt(clientX, clientY){
   const r = wm.getBoundingClientRect();
-  pointer.x = e.clientX - r.left; pointer.y = e.clientY - r.top; pointer.on = true;
-});
+  pointer.x = clientX - r.left;
+  pointer.y = clientY - r.top;
+  pointer.on = true;
+  userDrove = performance.now();
+}
+wm.addEventListener("pointermove", e => aimAt(e.clientX, e.clientY));
 wm.addEventListener("pointerleave", () => { pointer.on = false; });
+// passive: never block the scroll, just read where the finger is
+wm.addEventListener("touchmove", e => {
+  const t = e.touches[0];
+  if(t) aimAt(t.clientX, t.clientY);
+}, {passive:true});
+wm.addEventListener("touchstart", e => {
+  const t = e.touches[0];
+  if(t) aimAt(t.clientX, t.clientY);
+}, {passive:true});
+wm.addEventListener("touchend", () => { userDrove = performance.now(); });
+
+/* autonomous sweep - runs until the visitor takes over, resumes 2.5s after they stop */
+function autoSweep(t){
+  if(RM) return;
+  if(t - userDrove < 2500) return;
+  const w = wW || 1, h = wH || 1;
+  const p = (t / 5200) % 1;
+  pointer.x = (0.5 + 0.62 * Math.sin(p * Math.PI * 2)) * w;
+  pointer.y = (0.5 + 0.30 * Math.sin(p * Math.PI * 4 + 1.1)) * h;
+  pointer.on = true;
+}
 
 let wmRaf = 0;
-function tick(t){ drawWordmark(t); wmRaf = requestAnimationFrame(tick); }
+function tick(t){ autoSweep(t); drawWordmark(t); wmRaf = requestAnimationFrame(tick); }
 
 /* ---------- chapters / rail ---------- */
 const CHAPTERS = [
@@ -925,6 +1047,9 @@ rail.removeAttribute("aria-hidden");
 rail.setAttribute("aria-label","Chapters");
 const prog = document.getElementById("prog");
 const bar = document.getElementById("bar");
+const mFill = document.getElementById("m-fill");
+const mTc = document.getElementById("m-tc");
+const mNm = document.getElementById("m-nm");
 
 function onScroll(){
   const max = document.body.scrollHeight - innerHeight;
@@ -939,6 +1064,10 @@ function onScroll(){
   });
   rail.querySelectorAll(".chap").forEach(b => b.classList.toggle("on", b.dataset.id === active));
   document.querySelectorAll(".bar nav a").forEach(a => a.classList.toggle("on", a.getAttribute("href") === "#"+active));
+
+  const ch = CHAPTERS.find(c => c.id === active) || CHAPTERS[0];
+  mFill.style.width = (p*100) + "%";
+  if(mTc.textContent !== ch.tc){ mTc.textContent = ch.tc; mNm.textContent = ch.nm; }
 }
 addEventListener("scroll", onScroll, {passive:true});
 
@@ -950,6 +1079,42 @@ document.querySelectorAll(".reveal").forEach(el => io.observe(el));
 document.querySelectorAll("section .col, .facts, .svc article, .work-head, form, .socials").forEach(el => {
   el.classList.add("reveal"); io.observe(el);
 });
+
+/* mark whatever is centred on screen as "seen" so touch gets the hover states */
+if(COARSE){
+  const seen = new IntersectionObserver(es => {
+    es.forEach(e => e.target.classList.toggle("seen", e.isIntersecting));
+  }, {rootMargin:"-32% 0px -32% 0px", threshold:0});
+  document.querySelectorAll(".card, .svc article, .fact").forEach(el => seen.observe(el));
+}
+
+/* headline resolves out of noise - the machine settling on the words */
+(function decode(){
+  const el = document.querySelector(".hero-lede");
+  if(!el || RM) return;
+  const final = el.textContent;
+  const glyphs = "01#/\\<>[]{}*+=-_";
+  const start = performance.now();
+  const DUR = 1100;
+  el.style.minHeight = el.offsetHeight + "px";
+  function frame(t){
+    const p = Math.min(1, (t - start) / DUR);
+    const settled = Math.floor(p * final.length);
+    let out = "";
+    for(let i = 0; i < final.length; i++){
+      const c = final[i];
+      if(i < settled || c === " " || c === "\n") out += c;
+      else out += glyphs[(Math.random() * glyphs.length) | 0];
+    }
+    el.textContent = out;
+    if(p < 1) requestAnimationFrame(frame);
+    else { el.textContent = final; el.style.minHeight = ""; }
+  }
+  const io = new IntersectionObserver((es, o) => {
+    if(es[0].isIntersecting){ o.disconnect(); requestAnimationFrame(frame); }
+  }, {threshold:.4});
+  io.observe(el);
+})();
 
 /* ---------- brief form -> mailto ---------- */
 document.getElementById("brief").addEventListener("submit", e => {
