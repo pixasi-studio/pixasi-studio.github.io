@@ -442,7 +442,11 @@ footer{border-top:1px solid var(--line);padding-block:34px 46px;color:var(--mute
 
 <section class="hero shell" id="hero">
   <div class="stage reveal">
-    <canvas id="wordmark"></canvas>
+    <!-- stretch, not cover: the source is a head-and-shoulders crop and this box
+         is ~3:1, so cover would blow up a thin band across the eyes. Stretching
+         spreads the whole portrait over the word; at this cell size the
+         distortion reads as abstraction rather than error. -->
+    <canvas id="wordmark" data-portrait="brand/pixasi-portrait.jpg" data-portrait-fit="stretch"></canvas>
     <span class="corner c1"></span><span class="corner c2"></span>
     <span class="corner c3"></span><span class="corner c4"></span>
     <span class="sig mono" aria-hidden="true"><span class="sig-rule"></span>Anuj Singh</span>
@@ -962,6 +966,7 @@ let cells = [], wW = 0, wH = 0, cell = 0;
    and the reference to it are added in one move. No attribute means no request
    and no 404 in the console: "optional" ought to be silent. */
 const PORTRAIT_SRC = wm.dataset.portrait || "";
+const PORTRAIT_FIT = wm.dataset.portraitFit || "cover";
 const portrait = new Image();
 let portraitReady = false;
 if(PORTRAIT_SRC){
@@ -1015,8 +1020,13 @@ function buildCells(){
   cell = Math.max(4, Math.round(wW/190));
   const img = o.getImageData(0,0,wW,wH).data;
 
-  /* the photo, cover-fitted to the same box, so cell (x,y) maps straight onto
-     photo pixel (x,y) with no second coordinate space to reason about */
+  /* The photo is drawn into the same box as the letterforms, so cell (x,y) maps
+     straight onto photo pixel (x,y) with no second coordinate space to reason
+     about. A portrait is roughly square and this box is roughly 3:1, so how it
+     is fitted decides what you actually see:
+       contain — whole portrait, centred; letters either side stay plain ink
+       cover   — fills the word, but only a horizontal slice of the face
+       stretch — whole portrait spread across every letter, distorted */
   let photo = null;
   if(portraitReady){
     const pc = document.createElement("canvas");
@@ -1024,7 +1034,12 @@ function buildCells(){
     const p2 = pc.getContext("2d", {willReadFrequently:true});
     const ir = portrait.naturalWidth / portrait.naturalHeight, cr = wW / wH;
     let dw, dh;
-    if(ir > cr){ dh = wH; dw = wH * ir; } else { dw = wW; dh = wW / ir; }
+    if(PORTRAIT_FIT === "stretch"){ dw = wW; dh = wH; }
+    else if(PORTRAIT_FIT === "contain"){
+      if(ir > cr){ dw = wW; dh = wW / ir; } else { dh = wH; dw = wH * ir; }
+    } else {
+      if(ir > cr){ dh = wH; dw = wH * ir; } else { dw = wW; dh = wW / ir; }
+    }
     p2.drawImage(portrait, (wW-dw)/2, (wH-dh)/2, dw, dh);
     photo = p2.getImageData(0,0,wW,wH).data;
   }
@@ -1035,7 +1050,8 @@ function buildCells(){
       const base = ((Math.floor(y)*wW) + Math.floor(x)) * 4;
       if(img[base + 3] <= 128) continue;          // outside the letterforms
       const c = {x, y, ox:x, oy:y, vx:0, vy:0};
-      if(photo) c.rgb = [photo[base], photo[base+1], photo[base+2]];
+      // alpha 0 means this cell falls outside the fitted photo — leave it as ink
+      if(photo && photo[base+3] > 8) c.rgb = [photo[base], photo[base+1], photo[base+2]];
       cells.push(c);
     }
   }
