@@ -1,10 +1,16 @@
 name: tests
 
 on:
+  # pull_request already covers branches with an open PR; limiting push to the
+  # default branch keeps a PR from running the same suite twice
   push:
-    branches: ["**"]
+    branches: [main]
   pull_request:
   workflow_dispatch:
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   playwright:
