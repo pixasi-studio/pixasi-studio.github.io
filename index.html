@@ -407,9 +407,39 @@ footer{border-top:1px solid var(--line);padding-block:34px 46px;color:var(--mute
 .lb-open svg{transition:transform .25s;}
 .lb-open:hover svg{transform:translate(2px,-2px);}
 
-.reveal{opacity:0;transform:translateY(14px);}
-.reveal.in{opacity:1;transform:none;transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1);}
-@media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;}}
+/* ---------- staged entrances ----------
+   Everything enters on the same curve and the same clock; only the
+   direction and the delay change, so the page reads as one system. */
+:root{--ease:cubic-bezier(.16,.84,.28,1);}
+.reveal{
+  opacity:0;transform:translateY(26px);
+  transition:opacity .82s var(--ease),transform .82s var(--ease);
+  transition-delay:var(--d,0ms);will-change:opacity,transform;
+}
+.reveal.in{opacity:1;transform:none;}
+/* cards keep their own padding transition for the list-view hover */
+.card.reveal{
+  transition:opacity .82s var(--ease),transform .82s var(--ease),
+             padding .3s cubic-bezier(.2,.7,.2,1);
+  transition-delay:var(--d,0ms);
+}
+.reveal[data-rv="left"]{transform:translateX(-28px);}
+.reveal[data-rv="right"]{transform:translateX(28px);}
+.reveal[data-rv="rise"]{transform:translateY(40px) scale(.985);transform-origin:bottom left;}
+
+/* the eyebrow rule draws itself across as the chapter opens */
+.eyebrow .ln{transform:scaleX(0);transform-origin:left;transition:transform 1.1s var(--ease) .12s;}
+.reveal.in .ln,.eyebrow.in .ln{transform:scaleX(1);}
+
+/* scroll parallax, desktop only - phones get the stagger and nothing more */
+@media (min-width:861px) and (prefers-reduced-motion:no-preference){
+  .par{transform:translate3d(0,var(--py,0px),0);will-change:transform;}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .reveal,.reveal[data-rv]{opacity:1;transform:none;}
+  .eyebrow .ln{transform:scaleX(1);}
+}
 </style>
 
 <header class="bar" id="bar">
@@ -769,7 +799,6 @@ WORK.forEach((item, i) => {
   const b = document.createElement("button");
   b.className = "card reveal";
   b.dataset.cat = item.cat;
-  b.style.transitionDelay = (i%3)*70 + "ms";
   b.innerHTML =
     '<span class="frame"><canvas></canvas><span class="badge">'+item.dur+'</span><span class="scrub"></span></span>'+
     '<span class="t">'+item.t+'</span>'+
@@ -953,8 +982,22 @@ function drawWordmark(t){
     const wob = RM ? 0 : Math.sin(t*0.0011 + p.ox*0.014 + p.oy*0.02) * 0.55;
     wctx.fillStyle = near > 0.35 ? accent : ink;
     const sz = s * (1 + near*0.55);
-    wctx.fillRect(p.x - sz/2, p.y - sz/2 + wob, sz, sz);
-    if(near > 0.18) lit.push(p, near);
+
+    /* scrolling away scatters the field outward from the centre and
+       fades it - the picture coming apart into its pixels */
+    let dxp = 0, dyp = 0;
+    if(disperse > 0.002){
+      const e = disperse * disperse;                 // hold, then let go
+      const vx = p.ox - wW/2, vy = p.oy - wH/2;
+      const jitter = ((p.ox * 7 + p.oy * 13) % 17) / 17 - 0.5;
+      dxp = vx * e * 1.15 + jitter * e * 90;
+      dyp = vy * e * 0.75 + jitter * e * 40;
+      wctx.globalAlpha = Math.max(0, 1 - disperse * 1.35);
+    }
+    wctx.fillRect(p.x - sz/2 + dxp, p.y - sz/2 + wob + dyp, sz, sz);
+    wctx.globalAlpha = 1;
+    // cap the candidate set: the pair loop below is quadratic
+    if(near > 0.18 && disperse < 0.35 && lit.length < 240) lit.push(p, near);
   }
 
   /* wire the activated nodes together - the field reads as a network,
@@ -1024,8 +1067,46 @@ function autoSweep(t){
   pointer.on = true;
 }
 
+/* ---------- scroll engine ----------
+   One rAF loop drives the wordmark, the dispersal and the parallax.
+   Nothing else reads layout during scroll, so phones stay smooth. */
+let disperse = 0;
+const parallax = [];
+function measureParallax(){
+  parallax.length = 0;
+  if(RM || innerWidth < 861) return;
+  document.querySelectorAll("[data-par]").forEach(el => {
+    parallax.push({el, k: parseFloat(el.dataset.par) || 0, top: 0, h: 0});
+  });
+  remeasure();
+}
+function remeasure(){
+  parallax.forEach(p => {
+    const r = p.el.getBoundingClientRect();
+    p.top = r.top + scrollY; p.h = r.height;
+  });
+}
+function scrollFX(){
+  const heroEl = document.getElementById("hero");
+  const hh = heroEl ? heroEl.offsetHeight : innerHeight;
+  disperse = Math.min(1, Math.max(0, scrollY / (hh * 0.85)));
+
+  const vh = innerHeight;
+  for(let i=0;i<parallax.length;i++){
+    const p = parallax[i];
+    const centre = p.top + p.h/2 - scrollY - vh/2;
+    if(Math.abs(centre) > vh * 1.4){ continue; }
+    p.el.style.setProperty("--py", (-centre * p.k).toFixed(1) + "px");
+  }
+}
+
 let wmRaf = 0;
-function tick(t){ autoSweep(t); drawWordmark(t); wmRaf = requestAnimationFrame(tick); }
+function tick(t){
+  scrollFX();
+  autoSweep(t);
+  drawWordmark(t);
+  wmRaf = requestAnimationFrame(tick);
+}
 
 /* ---------- chapters / rail ---------- */
 const CHAPTERS = [
@@ -1071,14 +1152,39 @@ function onScroll(){
 }
 addEventListener("scroll", onScroll, {passive:true});
 
-/* ---------- reveal ---------- */
+/* ---------- staged entrances ----------
+   Each section stages its own children in sequence rather than everything
+   arriving at once, so scrolling feels authored instead of triggered. */
 const io = new IntersectionObserver(es => {
   es.forEach(e => { if(e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target); } });
-}, {threshold:.12, rootMargin:"0px 0px -6% 0px"});
-document.querySelectorAll(".reveal").forEach(el => io.observe(el));
-document.querySelectorAll("section .col, .facts, .svc article, .work-head, form, .socials").forEach(el => {
-  el.classList.add("reveal"); io.observe(el);
+}, {threshold:.1, rootMargin:"0px 0px -8% 0px"});
+
+document.querySelectorAll("section .col, .facts, .svc article, .work-head, form, .socials, .eyebrow")
+  .forEach(el => el.classList.add("reveal"));
+
+// direction carries meaning: side-by-side blocks come from their own side
+document.querySelectorAll(".about-grid > .col, .contact-grid > div:first-child")
+  .forEach(el => el.dataset.rv = "left");
+document.querySelectorAll(".facts, form").forEach(el => el.dataset.rv = "right");
+document.querySelectorAll(".card, .svc article").forEach(el => el.dataset.rv = "rise");
+
+document.querySelectorAll("section").forEach(sec => {
+  const kids = sec.querySelectorAll(".reveal");
+  kids.forEach((el, i) => {
+    if(!el.style.getPropertyValue("--d")) el.style.setProperty("--d", Math.min(i, 6) * 85 + "ms");
+    io.observe(el);
+  });
 });
+// cards stagger across their own row, independent of section order
+cards.forEach((rec, i) => rec.el.style.setProperty("--d", (i % 3) * 90 + 40 + "ms"));
+
+// parallax targets - opposing drift keeps the two columns from feeling locked
+const setPar = (sel, k) => document.querySelectorAll(sel).forEach(el => {
+  el.dataset.par = k; el.classList.add("par");
+});
+setPar(".facts", 0.045);
+setPar(".hero-meta", 0.03);
+setPar(".svc article:nth-child(2)", 0.035);
 
 /* mark whatever is centred on screen as "seen" so touch gets the hover states */
 if(COARSE){
@@ -1134,6 +1240,7 @@ document.getElementById("brief").addEventListener("submit", e => {
 function boot(){
   buildCells();
   paintAll();
+  measureParallax();
   onScroll();
   if(!RM){ cancelAnimationFrame(wmRaf); wmRaf = requestAnimationFrame(tick); }
 }
