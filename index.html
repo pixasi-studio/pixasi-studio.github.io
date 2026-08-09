@@ -952,6 +952,46 @@ addEventListener("keydown", e => {
 const wm = document.getElementById("wordmark");
 const wctx = wm.getContext("2d");
 let cells = [], wW = 0, wH = 0, cell = 0;
+
+/* The portrait is the ink: each cell of the wordmark samples one pixel of the
+   photo, so the picture exists only where the letterforms are. Entirely
+   optional — with no photo the field falls back to flat ink and the hero looks
+   exactly as it did before.
+
+   The path lives on the canvas as data-portrait rather than here, so the file
+   and the reference to it are added in one move. No attribute means no request
+   and no 404 in the console: "optional" ought to be silent. */
+const PORTRAIT_SRC = wm.dataset.portrait || "";
+const portrait = new Image();
+let portraitReady = false;
+if(PORTRAIT_SRC){
+  portrait.onload = () => { portraitReady = true; buildCells(); paintAll(); };
+  portrait.onerror = () => { portraitReady = false; };
+  portrait.src = PORTRAIT_SRC;
+}
+
+/* Photo luminance is pushed into a band that stays legible against the page:
+   dark ink on cream, light ink on near-black. Hue and relative shading survive,
+   so the face still reads — it just can't wash out into the background. */
+function bandFor(dark){ return dark ? [0.42, 0.98] : [0.10, 0.62]; }
+function inkFromPixel(r, g, b, dark){
+  const [lo, hi] = bandFor(dark);
+  const lum = (0.2126*r + 0.7152*g + 0.0722*b) / 255;
+  const target = lo + lum * (hi - lo);
+  // scale the pixel toward the target luminance, keeping its colour
+  const k = lum < 0.02 ? target : target / lum;
+  const c = v => Math.max(0, Math.min(255, Math.round(v * k)));
+  return "rgb(" + c(r) + "," + c(g) + "," + c(b) + ")";
+}
+/* Cached per theme: recomputing 2000 css strings every frame would be silly. */
+let cellTheme = null;
+function recolorCells(){
+  if(!portraitReady || !cells.length) return;
+  const dark = isDark();
+  if(cellTheme === dark) return;
+  cellTheme = dark;
+  for(const p of cells) if(p.rgb) p.fill = inkFromPixel(p.rgb[0], p.rgb[1], p.rgb[2], dark);
+}
 const pointer = {x:-9999, y:-9999, on:false};
 
 function buildCells(){
@@ -974,18 +1014,39 @@ function buildCells(){
 
   cell = Math.max(4, Math.round(wW/190));
   const img = o.getImageData(0,0,wW,wH).data;
+
+  /* the photo, cover-fitted to the same box, so cell (x,y) maps straight onto
+     photo pixel (x,y) with no second coordinate space to reason about */
+  let photo = null;
+  if(portraitReady){
+    const pc = document.createElement("canvas");
+    pc.width = wW; pc.height = wH;
+    const p2 = pc.getContext("2d", {willReadFrequently:true});
+    const ir = portrait.naturalWidth / portrait.naturalHeight, cr = wW / wH;
+    let dw, dh;
+    if(ir > cr){ dh = wH; dw = wH * ir; } else { dw = wW; dh = wW / ir; }
+    p2.drawImage(portrait, (wW-dw)/2, (wH-dh)/2, dw, dh);
+    photo = p2.getImageData(0,0,wW,wH).data;
+  }
+
   cells = [];
   for(let y = cell/2; y < wH; y += cell){
     for(let x = cell/2; x < wW; x += cell){
-      const idx = ((Math.floor(y)*wW) + Math.floor(x)) * 4 + 3;
-      if(img[idx] > 128) cells.push({x, y, ox:x, oy:y, vx:0, vy:0});
+      const base = ((Math.floor(y)*wW) + Math.floor(x)) * 4;
+      if(img[base + 3] <= 128) continue;          // outside the letterforms
+      const c = {x, y, ox:x, oy:y, vx:0, vy:0};
+      if(photo) c.rgb = [photo[base], photo[base+1], photo[base+2]];
+      cells.push(c);
     }
   }
+  cellTheme = null;   // colours are stale whenever the field is rebuilt
+  recolorCells();
 }
 
 function drawWordmark(t){
   if(!cells.length) return;
   wctx.clearRect(0,0,wW,wH);
+  recolorCells();                 // no-op unless the theme actually changed
   const ink = css("--ink");
   const accent = css("--accent-bright");
   const s = cell * 0.72;
@@ -1009,7 +1070,7 @@ function drawWordmark(t){
     p.vx *= 0.86; p.vy *= 0.86;
     p.x += p.vx; p.y += p.vy;
     const wob = RM ? 0 : Math.sin(t*0.0011 + p.ox*0.014 + p.oy*0.02) * 0.55;
-    wctx.fillStyle = near > 0.35 ? accent : ink;
+    wctx.fillStyle = near > 0.35 ? accent : (p.fill || ink);
     const sz = s * (1 + near*0.55);
     wctx.fillRect(p.x - sz/2, p.y - sz/2 + wob, sz, sz);
     if(near > 0.18) lit.push(p, near);
