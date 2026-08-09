@@ -22,6 +22,9 @@ body{margin:0}
 img,svg,canvas{display:block;max-width:100%}
 button,input,select,textarea{font:inherit;color:inherit}
 </style>
+<!-- Restore the saved theme before first paint, so a returning visitor never
+     sees a frame of the system theme flipping to their choice. -->
+<script>try{var t=localStorage.getItem("pixasi-theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t;}catch(e){}</script>
 </head>
 <body>
 <title>Pixasi</title>
@@ -399,6 +402,8 @@ footer{border-top:1px solid var(--line);padding-block:34px 46px;color:var(--mute
   background:none;border:1px solid var(--line);color:var(--ink-2);padding:8px 13px;cursor:pointer;transition:.2s;
 }
 .lb button:hover{border-color:var(--ink);color:var(--ink);}
+.lb button[disabled]{opacity:.35;cursor:default;}
+.lb button[disabled]:hover{border-color:var(--line);color:var(--muted);}
 .lb-open{
   display:inline-flex;align-items:center;gap:8px;margin-top:18px;text-decoration:none;
   color:var(--accent);border:1px solid var(--line);padding:9px 15px;transition:.2s;
@@ -602,11 +607,15 @@ const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /* ---------- theme toggle ---------- */
 const root = document.documentElement;
+const THEME_KEY = "pixasi-theme";
 document.getElementById("theme").addEventListener("click", () => {
   const dark = root.dataset.theme
     ? root.dataset.theme === "dark"
     : matchMedia("(prefers-color-scheme: dark)").matches;
-  root.dataset.theme = dark ? "light" : "dark";
+  const next = dark ? "light" : "dark";
+  root.dataset.theme = next;
+  // the choice outlives the tab; the <head> script reads this back before paint
+  try{ localStorage.setItem(THEME_KEY, next); }catch(e){}
   paintAll();
 });
 
@@ -804,17 +813,32 @@ WORK.forEach((item, i) => {
 });
 
 /* ---------- filters ---------- */
+/* The active filter is real state, not just a class: the lightbox walks the
+   same set, so Prev/Next can never land on a tile the visitor filtered out. */
+let activeFilter = "all";
+function inFilter(item){ return activeFilter === "all" || item.cat === activeFilter; }
+function filteredIdx(){
+  const out = [];
+  WORK.forEach((item, i) => { if(inFilter(item)) out.push(i); });
+  return out.length ? out : WORK.map((_, i) => i);
+}
 document.querySelectorAll(".filters button").forEach(btn => {
   btn.addEventListener("click", () => {
-    document.querySelectorAll(".filters button").forEach(x => x.classList.toggle("on", x===btn));
-    const f = btn.dataset.f;
+    document.querySelectorAll(".filters button").forEach(x => {
+      const on = x === btn;
+      x.classList.toggle("on", on);
+      x.setAttribute("aria-pressed", String(on));
+    });
+    activeFilter = btn.dataset.f;
     cards.forEach(rec => {
-      const show = f==="all" || rec.item.cat===f;
+      const show = inFilter(rec.item);
       rec.el.hidden = !show;
       if(show) renderFrame(rec.cv, rec.item, rec.phase);
     });
   });
 });
+document.querySelectorAll(".filters button").forEach(x =>
+  x.setAttribute("aria-pressed", String(x.classList.contains("on"))));
 
 /* On touch there is no hover, so a card plays whenever it is the one
    sitting in the middle of the screen. */
@@ -852,10 +876,17 @@ let lbIdx = 0, lbRaf = 0, lastFocus = null;
 
 function paintLb(){
   const item = WORK[lbIdx];
-  document.getElementById("lb-title").innerHTML = item.t;
+  const vis = filteredIdx();
+  const pos = Math.max(0, vis.indexOf(lbIdx));
+  document.getElementById("lb-title").textContent = item.t;
   document.getElementById("lb-desc").textContent = item.d;
   document.getElementById("lb-open").href = item.url;
-  document.getElementById("lb-idx").textContent = String(lbIdx+1).padStart(2,"0") + " / " + String(WORK.length).padStart(2,"0") + "  —  " + item.kind;
+  // the counter reports position within the filtered set, not the whole array
+  document.getElementById("lb-idx").textContent = String(pos+1).padStart(2,"0") + " / " + String(vis.length).padStart(2,"0") + "  —  " + item.kind;
+  // with a single tile in scope there is nowhere to step to
+  const solo = vis.length < 2;
+  document.getElementById("lb-prev").disabled = solo;
+  document.getElementById("lb-next").disabled = solo;
   document.getElementById("lb-specs").innerHTML =
     item.s.map(p => '<div><span>'+p[0]+'</span><span>'+p[1]+'</span></div>').join("");
   cancelAnimationFrame(lbRaf);
@@ -867,18 +898,44 @@ function paintLb(){
   };
   lbRaf = requestAnimationFrame(loop);
 }
+/* aria-modal is a promise the browser does not keep for a plain <div>, so the
+   page behind is inerted (removes it from tab order AND the a11y tree) and Tab
+   is wrapped inside the panel. */
+const backdrop = [...document.body.children].filter(el => el !== lb);
+const FOCUSABLE = 'a[href],button:not([disabled]),input,select,textarea,[tabindex]:not([tabindex="-1"])';
+function lbFocusables(){
+  return [...lb.querySelectorAll(FOCUSABLE)].filter(el => el.getClientRects().length > 0);
+}
+function trapTab(e){
+  const f = lbFocusables();
+  if(!f.length){ e.preventDefault(); return; }
+  const first = f[0], last = f[f.length-1], a = document.activeElement;
+  const out = !lb.contains(a);
+  if(e.shiftKey ? (out || a === first) : (out || a === last)){
+    e.preventDefault();
+    (e.shiftKey ? last : first).focus();
+  }
+}
 function openLb(i){
   lastFocus = document.activeElement;
   lbIdx = i; lb.setAttribute("open",""); document.body.style.overflow = "hidden";
+  backdrop.forEach(el => { el.inert = true; });
   paintLb();  // synchronous: the panel is laid out the moment [open] is set
   document.getElementById("lb-close").focus();
 }
 function closeLb(){
   lb.removeAttribute("open"); document.body.style.overflow = "";
   cancelAnimationFrame(lbRaf);
+  backdrop.forEach(el => { el.inert = false; });  // before focus(): inert refuses it
   if(lastFocus) lastFocus.focus();
 }
-function step(d){ lbIdx = (lbIdx + d + WORK.length) % WORK.length; paintLb(); }
+/* step through the filtered set, wrapping inside it */
+function step(d){
+  const vis = filteredIdx();
+  const at = vis.indexOf(lbIdx);
+  lbIdx = at === -1 ? vis[0] : vis[(at + d + vis.length) % vis.length];
+  paintLb();
+}
 document.getElementById("lb-close").addEventListener("click", closeLb);
 document.getElementById("lb-prev").addEventListener("click", () => step(-1));
 document.getElementById("lb-next").addEventListener("click", () => step(1));
@@ -888,6 +945,7 @@ addEventListener("keydown", e => {
   if(e.key === "Escape") closeLb();
   if(e.key === "ArrowRight") step(1);
   if(e.key === "ArrowLeft") step(-1);
+  if(e.key === "Tab") trapTab(e);
 });
 
 /* ---------- hero wordmark: live pixel field ---------- */

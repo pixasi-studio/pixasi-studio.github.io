@@ -1,0 +1,16 @@
+{
+  "name": "pixasi-site",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tests for the Pixasi site. The site itself is index.html and has no build step — these are dev dependencies only and nothing here is served.",
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed",
+    "report": "playwright show-report",
+    "serve": "python3 -m http.server 8000"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.0"
+  }
+}
