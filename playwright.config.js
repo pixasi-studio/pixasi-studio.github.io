@@ -24,7 +24,9 @@ module.exports = defineConfig({
     command: `python3 -m http.server ${PORT}`,
     url: `http://127.0.0.1:${PORT}/index.html`,
     reuseExistingServer: !process.env.CI,
+    // http.server logs every request to stderr, which buries the test output
     stdout: "ignore",
+    stderr: "ignore",
   },
 
   projects: [
