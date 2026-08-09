@@ -181,6 +181,28 @@ a{color:inherit;}
   section{scroll-margin-top:92px;}
 }
 
+/* ---------- film edge ----------
+   35mm stock carries printed edge codes and sprocket holes between the
+   perforations. The page is cut as a reel, so it gets the same margin. */
+.edge{
+  position:fixed;top:0;bottom:0;right:0;width:38px;z-index:40;pointer-events:none;
+  display:flex;flex-direction:column;align-items:center;justify-content:space-between;
+  padding:88px 0 34px;
+  font-family:'DMMono',monospace;font-size:.56rem;letter-spacing:.3em;text-transform:uppercase;
+  color:var(--muted);
+}
+.edge::before{
+  content:"";position:absolute;right:6px;top:0;bottom:0;width:7px;
+  background:repeating-linear-gradient(to bottom,
+    color-mix(in srgb,var(--ink) 16%,transparent) 0 9px,
+    transparent 9px 26px);
+  border-radius:2px;
+  mask-image:linear-gradient(to bottom,transparent 0,#000 12%,#000 88%,transparent 100%);
+}
+.edge span{writing-mode:vertical-rl;text-orientation:mixed;white-space:nowrap;}
+.edge .code{color:var(--accent);}
+@media (max-width:1080px){.edge{display:none;}}
+
 /* ---------- page frame ---------- */
 main{padding-left:0;}
 @media (min-width:1081px){main{padding-left:var(--rail-w);}}
@@ -191,8 +213,8 @@ section{padding-block:var(--step);scroll-margin-top:56px;}
 .eyebrow .ln{flex:1;height:1px;background:var(--line);}
 
 /* ---------- hero ---------- */
-.hero{min-height:100svh;display:flex;flex-direction:column;justify-content:center;padding-block:96px 64px;}
-.stage{position:relative;width:100%;aspect-ratio:16/5;min-height:180px;margin-bottom:clamp(28px,4vw,48px);}
+.hero{min-height:100svh;display:flex;flex-direction:column;justify-content:center;padding-block:84px 56px;}
+.stage{position:relative;width:100%;aspect-ratio:16/4.4;min-height:190px;margin-bottom:clamp(24px,3.2vw,40px);}
 .stage canvas{width:100%;height:100%;display:block;}
 .stage .corner{position:absolute;width:14px;height:14px;border:1px solid var(--line);}
 .stage .c1{top:0;left:0;border-right:0;border-bottom:0;}
@@ -210,9 +232,25 @@ section{padding-block:var(--step);scroll-margin-top:56px;}
 .stage:hover .sig{color:var(--accent);letter-spacing:.42em;}
 .stage:hover .sig-rule{width:44px;}
 @media (max-width:620px){.sig{letter-spacing:.2em;font-size:.6rem;}.sig-rule{width:16px;}}
-.hero-lede{font-family:'Archivo';font-weight:500;font-stretch:96%;font-size:clamp(1.5rem,3.4vw,2.6rem);line-height:1.16;letter-spacing:-.025em;max-width:19ch;margin:0 0 20px;text-wrap:balance;}
-.hero-sub{color:var(--ink-2);max-width:52ch;margin:0 0 34px;font-size:1.06rem;}
-.hero-meta{display:flex;flex-wrap:wrap;gap:12px 28px;align-items:center;color:var(--muted);}
+.hero-lede{
+  font-family:'Archivo';font-weight:600;font-stretch:98%;
+  font-size:clamp(2rem,5vw,4.1rem);line-height:1.04;letter-spacing:-.035em;
+  max-width:16ch;margin:0 0 22px;text-wrap:balance;
+}
+.hero-sub{color:var(--ink-2);max-width:52ch;margin:0 0 30px;font-size:1.06rem;}
+.hero-meta{display:flex;flex-wrap:wrap;gap:12px 26px;align-items:center;color:var(--muted);}
+
+/* primary call to action - the one solid, saturated thing on the page */
+.cta{
+  display:inline-flex;align-items:center;gap:10px;text-decoration:none;
+  background:var(--accent-bright);color:#0B0C08;
+  font-family:'DMMono',monospace;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
+  padding:12px 20px;border-radius:999px;border:1px solid transparent;
+  transition:transform .3s var(--ease),box-shadow .3s ease,background .25s ease;
+}
+.cta:hover{transform:translateY(-2px);box-shadow:0 10px 24px -12px var(--accent-bright);background:var(--accent);color:var(--paper);}
+.cta svg{transition:transform .3s var(--ease);}
+.cta:hover svg{transform:translateX(3px);}
 .live{display:inline-flex;align-items:center;gap:8px;color:var(--ink-2);}
 .live i{width:7px;height:7px;border-radius:50%;background:var(--accent-bright);display:block;box-shadow:0 0 0 0 var(--accent-bright);animation:pulse 2.6s infinite;}
 @keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--accent-bright) 55%,transparent);}70%{box-shadow:0 0 0 9px transparent;}100%{box-shadow:0 0 0 0 transparent;}}
@@ -457,6 +495,11 @@ footer{border-top:1px solid var(--line);padding-block:34px 46px;color:var(--mute
 
 <div class="rail" id="rail" aria-hidden="true"><div class="prog" id="prog"></div></div>
 
+<div class="edge" aria-hidden="true">
+  <span>Pixasi &mdash; Safety Film</span>
+  <span class="code" id="frame-code">Frame 0000</span>
+</div>
+
 <div class="mrail" aria-hidden="true">
   <span class="tc" id="m-tc">00:00</span>
   <span class="track"><span class="fill" id="m-fill"></span></span>
@@ -476,6 +519,9 @@ footer{border-top:1px solid var(--line);padding-block:34px 46px;color:var(--mute
   <h1 class="hero-lede reveal">Pictures that hold still long enough to be read.</h1>
   <p class="hero-sub reveal">Pixasi is Anuj Singh &mdash; a one-person studio working across visuals, video, and the creative tech that makes them possible.</p>
   <div class="hero-meta mono reveal">
+    <a class="cta" href="#contact">Get in touch
+      <svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2.5 7.5h10M9 4l3.5 3.5L9 11" stroke="currentColor" stroke-width="1.6"/></svg>
+    </a>
     <span class="live"><i></i>Always mid-project</span>
     <span>Visuals &middot; Video &middot; Creative tech</span>
     <span><a href="https://instagram.com/pixasi" target="_blank" rel="noopener" style="text-decoration:none;border-bottom:1px solid var(--line);">@pixasi</a></span>
@@ -936,11 +982,11 @@ function buildCells(){
   off.width = wW; off.height = wH;
   const o = off.getContext("2d");
   o.fillStyle = "#000";
-  let size = wH * 0.86;
+  let size = wH * 0.94;
   o.textBaseline = "middle";
   o.textAlign = "center";
   const fit = () => { o.font = '800 ' + size + 'px Archivo, system-ui, sans-serif'; return o.measureText("PIXASI").width; };
-  while(fit() > wW*0.98 && size > 8) size -= 2;
+  while(fit() > wW*0.995 && size > 8) size -= 2;
   o.fillText("PIXASI", wW/2, wH/2);
 
   cell = Math.max(4, Math.round(wW/190));
@@ -1131,6 +1177,7 @@ const bar = document.getElementById("bar");
 const mFill = document.getElementById("m-fill");
 const mTc = document.getElementById("m-tc");
 const mNm = document.getElementById("m-nm");
+const frameCode = document.getElementById("frame-code");
 
 function onScroll(){
   const max = document.body.scrollHeight - innerHeight;
@@ -1149,6 +1196,11 @@ function onScroll(){
   const ch = CHAPTERS.find(c => c.id === active) || CHAPTERS[0];
   mFill.style.width = (p*100) + "%";
   if(mTc.textContent !== ch.tc){ mTc.textContent = ch.tc; mNm.textContent = ch.nm; }
+
+  // 8:04 of reel at 24fps, counted off as you scrub through it
+  const f = Math.round(p * 484 * 24);
+  const s = "Frame " + String(f).padStart(4, "0");
+  if(frameCode.textContent !== s) frameCode.textContent = s;
 }
 addEventListener("scroll", onScroll, {passive:true});
 
