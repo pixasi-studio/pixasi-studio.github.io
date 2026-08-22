@@ -6,6 +6,12 @@ Working notebook of **Anuj Singh** — visuals, video & creative tech, kept in p
   all artwork is drawn on `<canvas>`, no external requests, no build step.
 - `brand/` — the home-screen icon. The favicon is an inline SVG in the head.
 
+> The GitHub org is still named `pixasi-studio`, which is what fixes the live
+> address at `pixasi-studio.github.io`. Renaming the org (and this repo to
+> `<new-org>.github.io`) is the one step that has to be done in GitHub's
+> settings; the canonical URL, `og:url`, `og:image` and the GitHub link in the
+> footer all point there and need updating together afterwards.
+
 ## What's interactive
 
 Everything answers to either scrolling or tapping:
@@ -41,7 +47,7 @@ Served as a static site from the repo root. Any static host works
 
 ## Links
 
-- Instagram — [@pixasi](https://instagram.com/pixasi)
-- YouTube — [@pixasi](https://youtube.com/@pixasi)
-- Facebook — [/pixasingh](https://facebook.com/pixasingh)
+- Instagram — [@anuj.fieldnotes](https://instagram.com/anuj.fieldnotes)
+- YouTube — [@anuj.fieldnotes](https://youtube.com/@anuj.fieldnotes)
+- Facebook — [/anuj.fieldnotes](https://facebook.com/anuj.fieldnotes)
 - Contact — iamasr@duck.com

@@ -675,7 +675,7 @@ footer{border-top:1px solid var(--line);padding-block:34px 46px;color:var(--mute
     </a>
     <span class="live"><i></i>Log is open</span>
     <span>Visuals &middot; Video &middot; Creative tech</span>
-    <span><a class="hl" href="https://instagram.com/pixasi" target="_blank" rel="noopener">@pixasi</a></span>
+    <span><a class="hl" href="https://instagram.com/anuj.fieldnotes" target="_blank" rel="noopener">@anuj.fieldnotes</a></span>
   </div>
 </section>
 
@@ -717,8 +717,8 @@ footer{border-top:1px solid var(--line);padding-block:34px 46px;color:var(--mute
     </div>
   </div>
   <div class="grid" id="grid"></div>
-  <p class="feednote">Drag any plate sideways to scrub it by hand, or tap to open it. Everything posts to Instagram first &mdash; <a href="https://instagram.com/pixasi" target="_blank" rel="noopener">follow @pixasi</a> for the running feed.</p>
-  <noscript><p class="feednote">The plates are drawn in the browser, so they need JavaScript. The work itself lives on <a href="https://instagram.com/pixasi" target="_blank" rel="noopener">@pixasi</a>.</p></noscript>
+  <p class="feednote">Drag any plate sideways to scrub it by hand, or tap to open it. Everything posts to Instagram first &mdash; <a href="https://instagram.com/anuj.fieldnotes" target="_blank" rel="noopener">follow @anuj.fieldnotes</a> for the running feed.</p>
+  <noscript><p class="feednote">The plates are drawn in the browser, so they need JavaScript. The work itself lives on <a href="https://instagram.com/anuj.fieldnotes" target="_blank" rel="noopener">@anuj.fieldnotes</a>.</p></noscript>
 </section>
 
 <section class="shell" id="method">
@@ -764,10 +764,9 @@ footer{border-top:1px solid var(--line);padding-block:34px 46px;color:var(--mute
         <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M3.5 11.5L11.5 3.5M11.5 3.5H5M11.5 3.5V10" stroke="currentColor" stroke-width="1.4"/></svg>
       </a>
       <div class="socials">
-        <a href="https://instagram.com/pixasi" target="_blank" rel="noopener"><span class="h">Instagram</span><span class="v">@pixasi</span><span class="arw mono">&rarr;</span></a>
-        <a href="https://youtube.com/@pixasi" target="_blank" rel="noopener"><span class="h">YouTube</span><span class="v">@pixasi</span><span class="arw mono">&rarr;</span></a>
-        <a href="https://facebook.com/pixasingh" target="_blank" rel="noopener"><span class="h">Facebook</span><span class="v">/pixasingh</span><span class="arw mono">&rarr;</span></a>
-        <a href="https://github.com/pixasi-studio" target="_blank" rel="noopener"><span class="h">GitHub</span><span class="v">/pixasi-studio</span><span class="arw mono">&rarr;</span></a>
+        <a href="https://instagram.com/anuj.fieldnotes" target="_blank" rel="noopener"><span class="h">Instagram</span><span class="v">@anuj.fieldnotes</span><span class="arw mono">&rarr;</span></a>
+        <a href="https://youtube.com/@anuj.fieldnotes" target="_blank" rel="noopener"><span class="h">YouTube</span><span class="v">@anuj.fieldnotes</span><span class="arw mono">&rarr;</span></a>
+        <a href="https://facebook.com/anuj.fieldnotes" target="_blank" rel="noopener"><span class="h">Facebook</span><span class="v">/anuj.fieldnotes</span><span class="arw mono">&rarr;</span></a>
       </div>
     </div>
     <form id="brief">
@@ -812,7 +811,7 @@ footer{border-top:1px solid var(--line);padding-block:34px 46px;color:var(--mute
       <div>
         <h3 id="lb-title"></h3>
         <p id="lb-desc"></p>
-        <a id="lb-open" class="lb-open mono" href="https://instagram.com/pixasi" target="_blank" rel="noopener">
+        <a id="lb-open" class="lb-open mono" href="https://instagram.com/anuj.fieldnotes" target="_blank" rel="noopener">
           Open on Instagram
           <svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M3.5 11.5L11.5 3.5M11.5 3.5H5M11.5 3.5V10" stroke="currentColor" stroke-width="1.5"/></svg>
         </a>
@@ -883,33 +882,34 @@ function rng(seed){
 }
 
 /* ---------- the log ----------
-   Placeholder plates: every one opens the real post it points at.
-   Swap `t`, `cat`, `kind`, `dur`, `seed` and `url` as new work goes up. */
+   Placeholder plates. `url` points at the feed rather than at a single
+   post: the old per-post links belonged to the retired account and are
+   gone. As real posts go up, paste each permalink into its `url`. */
 const PLATES = [
   {t:"Handheld, late light", cat:"film", kind:"Video", dur:"Reel", seed:11,
-   url:"https://www.instagram.com/reel/Dbq1pjRB6HN/",
+   url:"https://instagram.com/anuj.fieldnotes",
    d:"A reel from the log. Open it on Instagram for the full clip, sound and caption.",
-   s:[["Plate","01"],["Discipline","Video"],["Filed","@pixasi"],["Format","Reel"]]},
+   s:[["Plate","01"],["Discipline","Video"],["Filed","@anuj.fieldnotes"],["Format","Reel"]]},
   {t:"Frame, held", cat:"film", kind:"Video", dur:"Post", seed:23,
-   url:"https://www.instagram.com/p/Dbvpzu4geE4/",
+   url:"https://instagram.com/anuj.fieldnotes",
    d:"Posted to the log. Open it on Instagram for the full piece and caption.",
-   s:[["Plate","02"],["Discipline","Video"],["Filed","@pixasi"],["Format","Post"]]},
+   s:[["Plate","02"],["Discipline","Video"],["Filed","@anuj.fieldnotes"],["Format","Post"]]},
   {t:"Colour study 04", cat:"motion", kind:"Visuals", dur:"Post", seed:36,
-   url:"https://www.instagram.com/p/DbvLDY0AWeh/",
+   url:"https://instagram.com/anuj.fieldnotes",
    d:"A colour pass kept as a note. Open it on Instagram for the full set.",
-   s:[["Plate","03"],["Discipline","Visuals"],["Filed","@pixasi"],["Format","Post"]]},
+   s:[["Plate","03"],["Discipline","Visuals"],["Filed","@anuj.fieldnotes"],["Format","Post"]]},
   {t:"Still, plotted", cat:"motion", kind:"Visuals", dur:"Post", seed:53,
-   url:"https://www.instagram.com/p/Dbtd6R2ge2m/",
+   url:"https://instagram.com/anuj.fieldnotes",
    d:"A still worked up from a plotted curve. Open it on Instagram for the full set.",
-   s:[["Plate","04"],["Discipline","Visuals"],["Filed","@pixasi"],["Format","Post"]]},
+   s:[["Plate","04"],["Discipline","Visuals"],["Filed","@anuj.fieldnotes"],["Format","Post"]]},
   {t:"Machine assist", cat:"tech", kind:"Creative tech", dur:"Post", seed:71,
-   url:"https://www.instagram.com/p/DbbWlNfCVej/",
+   url:"https://instagram.com/anuj.fieldnotes",
    d:"A build, a tool, or a piece of process. Open it on Instagram for the walkthrough.",
-   s:[["Plate","05"],["Discipline","Creative tech"],["Filed","@pixasi"],["Format","Post"]]},
+   s:[["Plate","05"],["Discipline","Creative tech"],["Filed","@anuj.fieldnotes"],["Format","Post"]]},
   {t:"Prototype, unfinished", cat:"tech", kind:"Creative tech", dur:"Post", seed:90,
-   url:"https://www.instagram.com/p/DbZKhRjjSIx/",
+   url:"https://instagram.com/anuj.fieldnotes",
    d:"Left deliberately rough. Open it on Instagram for the walkthrough.",
-   s:[["Plate","06"],["Discipline","Creative tech"],["Filed","@pixasi"],["Format","Post"]]}
+   s:[["Plate","06"],["Discipline","Creative tech"],["Filed","@anuj.fieldnotes"],["Format","Post"]]}
 ];
 
 /* ---------- plate renderer ----------
@@ -1098,7 +1098,7 @@ PLATES.forEach((item, i) => {
       '<span class="scrub"></span>' +
     '</span>' +
     '<span class="t">' + item.t + '</span>' +
-    '<span class="m">' + item.kind + ' &middot; @pixasi</span>';
+    '<span class="m">' + item.kind + '</span>';
   grid.appendChild(b);
 
   const cv    = b.querySelector("canvas");
@@ -1301,7 +1301,7 @@ const FACTS = [
   ["Filed under","anuj.fieldnotes","The notebook this page is. Everything here started as a note to myself."],
   ["Practice","Visuals, video, creative tech","Three disciplines at one desk, so the technical answer and the visual one turn up together."],
   ["Toolkit","DaVinci Resolve Studio, Final Cut Pro, Motion, Claude, Antigravity","Tools rotate. The method &mdash; look hard, cut early, keep notes &mdash; does not."],
-  ["Field","instagram.com/pixasi","The running log: rougher, faster and further ahead than this page. <a href=\"https://instagram.com/pixasi\" target=\"_blank\" rel=\"noopener\">Open it &rarr;</a>"],
+  ["Field","instagram.com/anuj.fieldnotes","The running log: rougher, faster and further ahead than this page. <a href=\"https://instagram.com/anuj.fieldnotes\" target=\"_blank\" rel=\"noopener\">Open it &rarr;</a>"],
   ["Enquiries","iamasr@duck.com","A reference and a deadline is enough to start. <a href=\"mailto:iamasr@duck.com\">Write to me &rarr;</a>"]
 ];
 const factsWrap = $("#facts");
