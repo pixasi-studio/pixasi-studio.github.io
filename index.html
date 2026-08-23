@@ -51,6 +51,9 @@
   --accent-bright:#D2543A;
   --plot:#2E6389;          /* the second pen: plots, diagrams, data */
   --shadow:0 1px 2px rgba(22,24,26,.05),0 14px 34px -20px rgba(22,24,26,.34);
+  --glass:color-mix(in srgb,var(--surface) 55%,transparent);
+  --glass-soft:color-mix(in srgb,var(--surface) 34%,transparent);
+  --glass-line:color-mix(in srgb,var(--ink) 14%,transparent);
 
   --rail-w:112px;
   --ruler-w:46px;
@@ -65,6 +68,9 @@
     --paper:#101215; --surface:#181B1F; --line:#2B2F34; --line-soft:#212429;
     --rule:#2A3A46;
     --accent:#E4674A; --accent-bright:#F27C5D; --plot:#5E9EC9;
+    --glass:color-mix(in srgb,var(--surface) 48%,transparent);
+    --glass-soft:color-mix(in srgb,var(--surface) 30%,transparent);
+    --glass-line:color-mix(in srgb,var(--ink) 17%,transparent);
     --shadow:0 1px 2px rgba(0,0,0,.45),0 20px 44px -24px rgba(0,0,0,.85);
   }
 }
@@ -73,6 +79,9 @@
   --paper:#101215; --surface:#181B1F; --line:#2B2F34; --line-soft:#212429;
   --rule:#2A3A46;
   --accent:#E4674A; --accent-bright:#F27C5D; --plot:#5E9EC9;
+  --glass:color-mix(in srgb,var(--surface) 48%,transparent);
+  --glass-soft:color-mix(in srgb,var(--surface) 30%,transparent);
+  --glass-line:color-mix(in srgb,var(--ink) 17%,transparent);
   --shadow:0 1px 2px rgba(0,0,0,.45),0 20px 44px -24px rgba(0,0,0,.85);
 }
 
@@ -114,7 +123,7 @@ a,button{-webkit-tap-highlight-color:transparent;}
 .torch{
   --gc:var(--accent);
   opacity:var(--torch-o,0);
-  transition:opacity .5s ease;
+  transition:opacity .6s ease;
   mask-image:radial-gradient(circle 190px at var(--mx,-999px) var(--my,-999px), #000 0%, rgba(0,0,0,.45) 45%, transparent 72%);
   -webkit-mask-image:radial-gradient(circle 190px at var(--mx,-999px) var(--my,-999px), #000 0%, rgba(0,0,0,.45) 45%, transparent 72%);
 }
@@ -170,8 +179,8 @@ main,.bar,.rail,.ruler,.mrail,.lb{position:relative;z-index:1;}
   position:fixed;inset:0 0 auto 0;z-index:60;height:58px;
   display:flex;align-items:center;gap:24px;
   padding-inline:var(--gutter);
-  background:color-mix(in srgb,var(--paper) 94%,transparent);
-  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  background:color-mix(in srgb,var(--paper) 86%,transparent);
+  backdrop-filter:blur(22px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);
   border-bottom:1px solid transparent;transition:border-color .3s ease;
 }
 .bar.is-stuck{border-bottom-color:var(--line);}
@@ -225,7 +234,7 @@ main,.bar,.rail,.ruler,.mrail,.lb{position:relative;z-index:1;}
     display:flex;align-items:center;gap:10px;
     position:fixed;top:58px;left:0;right:0;z-index:59;
     padding:6px var(--gutter) 7px;
-    background:var(--paper);
+    background:color-mix(in srgb,var(--paper) 96%,transparent);
     border-bottom:1px solid var(--line);
     font-family:'DMMono',monospace;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;
     color:var(--muted);
@@ -388,11 +397,12 @@ section{padding-block:var(--step);scroll-margin-top:58px;}
 .filters{display:flex;gap:6px;flex-wrap:wrap;}
 .filters button,.views button{
   font-family:'DMMono',monospace;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;
-  background:none;border:1px solid var(--line);color:var(--muted);
-  padding:7px 14px;cursor:pointer;transition:.2s;
+  background:none;border:1px solid var(--glass-line);color:var(--muted);
+  padding:7px 14px;cursor:pointer;position:relative;z-index:1;
+  transition:color .3s var(--ease-out),border-color .3s var(--ease-out);
 }
 .filters button:hover,.views button:hover{color:var(--ink);border-color:var(--ink-2);}
-.filters button.on,.views button.on{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+.filters button.on,.views button.on{color:var(--paper);border-color:transparent;}
 .views{display:flex;gap:6px;margin-left:4px;}
 .views button{display:inline-flex;align-items:center;gap:7px;padding:7px 12px;}
 .views button svg{fill:currentColor;}
@@ -416,7 +426,7 @@ section{padding-block:var(--step);scroll-margin-top:58px;}
 }
 .card .frame{
   position:relative;aspect-ratio:16/9;overflow:hidden;background:var(--surface);
-  border:1px solid var(--line);touch-action:pan-y;
+  border:1px solid var(--glass-line);touch-action:pan-y;
   transition:border-color .25s ease,transform .35s var(--ease-out),box-shadow .35s ease;
 }
 .card canvas{width:100%;height:100%;display:block;pointer-events:none;}
@@ -458,7 +468,7 @@ section{padding-block:var(--step);scroll-margin-top:58px;}
 /* ---------- entry 03: method, drawn while you scroll ---------- */
 .method{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(28px,5vw,72px);align-items:start;}
 .method-vis{position:sticky;top:112px;}
-.plotwrap{position:relative;border:1px solid var(--line);background:var(--surface);aspect-ratio:4/3.4;overflow:hidden;}
+.plotwrap{position:relative;border:1px solid var(--glass-line);background:var(--glass);aspect-ratio:4/3.4;overflow:hidden;}
 .plotwrap canvas{width:100%;height:100%;}
 .plotwrap .cap{
   position:absolute;left:12px;bottom:11px;right:12px;display:flex;justify-content:space-between;gap:12px;
@@ -488,7 +498,8 @@ section{padding-block:var(--step);scroll-margin-top:58px;}
 .svc article.is-live .idx{letter-spacing:.3em;}
 @media (max-width:900px){
   .method{grid-template-columns:1fr;gap:20px;}
-  .method-vis{top:104px;z-index:2;background:var(--paper);padding-block:8px;}
+  .method-vis{top:104px;z-index:2;padding-block:8px;
+    background:color-mix(in srgb,var(--paper) 96%,transparent);}
   .plotwrap{aspect-ratio:16/9;}
   .svc article{min-height:auto;padding-block:26px;}
   .svc.staged article{opacity:1;}
@@ -518,12 +529,13 @@ section{padding-block:var(--step);scroll-margin-top:58px;}
 .socials a:hover .h{color:var(--accent);}
 .socials .arw{margin-left:auto;color:var(--muted);}
 
-form{display:flex;flex-direction:column;gap:14px;border:1px solid var(--line);padding:clamp(20px,3vw,30px);background:var(--surface);}
+form{display:flex;flex-direction:column;gap:14px;border:1px solid var(--glass-line);padding:clamp(20px,3vw,30px);background:var(--glass);}
 form .fl{display:flex;flex-direction:column;gap:7px;}
 form label{font-family:'DMMono',monospace;font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
 form input,form select,form textarea{
-  font-family:'Karla',sans-serif;font-size:.95rem;color:var(--ink);background:var(--paper);
-  border:1px solid var(--line);padding:10px 12px;width:100%;
+  font-family:'Karla',sans-serif;font-size:.95rem;color:var(--ink);background:var(--glass-soft);
+  border:1px solid var(--glass-line);padding:10px 12px;width:100%;
+  transition:border-color .3s var(--ease-out),background .3s var(--ease-out);
 }
 form textarea{resize:vertical;min-height:100px;}
 form input:focus,form select:focus,form textarea:focus{border-color:var(--accent-bright);outline:none;}
@@ -607,12 +619,118 @@ footer{border-top:1px solid var(--line);padding-block:34px 46px;color:var(--mute
   .torch{display:none;}
 }
 .hint.tapped i{animation:none;opacity:.55;}
+
+/* ============================================================
+   The lit field, and the motion that reads off it
+   ------------------------------------------------------------
+   A handful of slow blooms are drawn into a 200x120 canvas and
+   stretched over the viewport. Being upscaled that far is the
+   point: it arrives already soft, so every panel above it can be
+   plain translucent paint and still read as glass, with no
+   backdrop-filter to pay for.
+   ============================================================ */
+.field{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  width:100%;height:100%;
+}
+@media (hover:none),(pointer:coarse){.torch{display:none;}}
+.paper{opacity:.82;}
+.paper::after{display:none;}   /* the field supplies the warmth now */
+
+/* ---------- glass ---------- */
+.socials a,.fact{transition:background .35s var(--ease-out),color .2s,padding-left .25s var(--ease-out);}
+.socials a:hover,.fact:hover{background:var(--glass-soft);}
+.card .frame{background:var(--glass);}
+.card:hover .frame{border-color:color-mix(in srgb,var(--accent) 55%,transparent);}
+.lb button,.lb-open{background:var(--glass-soft);}
+
+/* ---------- one mark that slides between states ----------
+   Nav, filters and the view toggle all move a single indicator
+   rather than repainting a new active item, so changing state
+   reads as one continuous move rather than a cut. */
+.bar nav{position:relative;}
+.nav-ink{
+  position:absolute;left:0;bottom:-7px;height:1px;
+  background:var(--accent);
+  width:var(--nw,0px);
+  transform:translate3d(var(--nx,0px),0,0);
+  opacity:var(--no,0);
+  transition:transform .5s var(--ease-out),width .5s var(--ease-out),opacity .35s ease;
+  pointer-events:none;
+}
+.filters,.views{position:relative;}
+.slide-ink{
+  position:absolute;top:0;left:0;height:100%;
+  width:var(--sw,0px);
+  transform:translate3d(var(--sx,0px),0,0);
+  background:var(--ink);
+  transition:transform .52s var(--ease-out),width .52s var(--ease-out);
+  z-index:0;pointer-events:none;
+}
+.views button{position:relative;z-index:1;}
+.filters button:hover,.views button:hover{border-color:var(--ink-2);}
+.filters button.on:hover,.views button.on:hover{border-color:transparent;}
+
+/* ---------- the mark keeps turning ---------- */
+@keyframes mark-spin{to{transform:rotate(360deg);}}
+.mark .target .ring{
+  animation:mark-spin 26s linear infinite;
+  transition:animation-duration .4s ease;
+}
+.mark:hover .target .ring,.mark:focus-visible .target .ring{
+  animation-duration:2.6s;transform:none;
+}
+
+/* ---------- form fields answer the caret ---------- */
+form .fl{position:relative;}
+form .fl::after{
+  content:"";position:absolute;left:0;right:0;bottom:0;height:1px;
+  background:var(--accent);transform:scaleX(0);transform-origin:left;
+  transition:transform .45s var(--ease-out);
+}
+form .fl:focus-within::after{transform:scaleX(1);}
+form .fl:focus-within label{color:var(--accent);}
+form input:focus,form select:focus,form textarea:focus{background:var(--glass);}
+form button{position:relative;overflow:hidden;}
+form button::before{
+  content:"";position:absolute;inset:0;background:var(--accent);
+  transform:scaleX(0);transform-origin:left;
+  transition:transform .45s var(--ease-out);z-index:0;
+}
+form button:hover::before{transform:scaleX(1);}
+form button > span{position:relative;z-index:1;}
+form button:hover{color:var(--paper);}
+
+/* ---------- the footer strip breathes ---------- */
+.bars{align-items:flex-end;}
+.bars i{transform-origin:bottom;animation:bar-breathe 5.5s var(--ease) infinite;}
+.bars i:nth-child(1){animation-delay:0s}    .bars i:nth-child(2){animation-delay:.35s}
+.bars i:nth-child(3){animation-delay:.7s}   .bars i:nth-child(4){animation-delay:1.05s}
+.bars i:nth-child(5){animation-delay:1.4s}  .bars i:nth-child(6){animation-delay:1.75s}
+.bars i:nth-child(7){animation-delay:2.1s}
+@keyframes bar-breathe{0%,100%{transform:scaleY(.45);}50%{transform:scaleY(1);}}
+
+/* ---------- theme button ---------- */
+#theme{position:relative;overflow:hidden;transition:color .3s,border-color .3s;}
+#theme::before{
+  content:"";position:absolute;inset:0;background:var(--ink);
+  transform:translateY(101%);transition:transform .42s var(--ease-out);
+}
+#theme:hover{color:var(--paper);border-color:var(--ink);}
+#theme:hover::before{transform:none;}
+#theme > span{position:relative;z-index:1;}
+
+@media (prefers-reduced-motion:reduce){
+  .mark .target .ring{animation:none;}
+  .bars i{animation:none;transform:none;}
+  .nav-ink,.slide-ink{transition:none;}
+}
 </style>
 </head>
 <body>
 
 <noscript><style>
-  .stage,.hint,.grid,.facts,.method-vis,.controls,.rail,.ruler,.mrail,.lb,.torch{display:none !important;}
+  .stage,.hint,.grid,.facts,.method-vis,.controls,.rail,.ruler,.mrail,.lb,.torch,.field{display:none !important;}
   .hero{min-height:auto;padding-block:132px 56px;}
   main{padding-left:0 !important;padding-right:0 !important;}
   .about-grid,.method{grid-template-columns:1fr !important;}
@@ -621,6 +739,7 @@ footer{border-top:1px solid var(--line);padding-block:34px 46px;color:var(--mute
   section{scroll-margin-top:0;}
 </style></noscript>
 
+<canvas class="field" id="field" aria-hidden="true"></canvas>
 <div class="paper" aria-hidden="true"></div>
 <div class="torch" aria-hidden="true"></div>
 <div class="inklayer" id="inklayer" aria-hidden="true"></div>
@@ -634,6 +753,7 @@ footer{border-top:1px solid var(--line);padding-block:34px 46px;color:var(--mute
     <span>anuj<span class="dot">.</span><span class="lo">fieldnotes</span></span>
   </a>
   <nav class="mono">
+    <span class="nav-ink" aria-hidden="true"></span>
     <a href="#practice" class="hide-sm">Practice</a>
     <a href="#plates">Plates</a>
     <a href="#method" class="hide-sm">Method</a>
@@ -699,12 +819,14 @@ footer{border-top:1px solid var(--line);padding-block:34px 46px;color:var(--mute
     <h2 class="disp">Plates from the log.</h2>
     <div class="controls">
       <div class="filters" role="group" aria-label="Filter plates by discipline">
+        <span class="slide-ink" aria-hidden="true"></span>
         <button class="on" data-f="all">All</button>
         <button data-f="film">Video</button>
         <button data-f="motion">Visuals</button>
         <button data-f="tech">Tech</button>
       </div>
       <div class="views" role="group" aria-label="Change layout">
+        <span class="slide-ink" aria-hidden="true"></span>
         <button id="v-grid" class="on" aria-pressed="true" title="Grid view">
           <svg viewBox="0 0 14 14" width="13" height="13" aria-hidden="true"><rect x="0" y="0" width="6" height="6"/><rect x="8" y="0" width="6" height="6"/><rect x="0" y="8" width="6" height="6"/><rect x="8" y="8" width="6" height="6"/></svg>
           <span>Grid</span>
@@ -779,7 +901,7 @@ footer{border-top:1px solid var(--line);padding-block:34px 46px;color:var(--mute
       </div>
       <div class="fl"><label for="f-when">Rough timeline</label><input id="f-when" name="when" type="text" placeholder="e.g. shoots in March, delivers April"></div>
       <div class="fl"><label for="f-msg">The rough version</label><textarea id="f-msg" name="msg" placeholder="What it is, who it&rsquo;s for, and what&rsquo;s making it hard."></textarea></div>
-      <button type="submit">Compose the email</button>
+      <button type="submit"><span>Compose the email</span></button>
       <p class="note">This opens a draft in your own mail app &mdash; nothing is sent or stored here.</p>
     </form>
   </div>
@@ -791,7 +913,7 @@ footer{border-top:1px solid var(--line);padding-block:34px 46px;color:var(--mute
     <div class="bars" aria-hidden="true">
       <i style="background:#C6C9CE"></i><i style="background:#C4BC52"></i><i style="background:#43AEBC"></i><i style="background:#4FA55E"></i><i style="background:#A9578C"></i><i style="background:#B85450"></i><i style="background:#40589E"></i>
     </div>
-    <button id="theme" class="mono">Invert</button>
+    <button id="theme" class="mono"><span>Invert</span></button>
   </div>
 </footer>
 </main>
@@ -852,6 +974,17 @@ function refreshPalette(){
     accent:get("--accent"), bright:get("--accent-bright"), plot:get("--plot"),
     dark:isDark()
   };
+  PAL.rgbInk    = rgb(PAL.ink);
+  PAL.rgbAccent = rgb(PAL.accent);
+  PAL.rgbPlot   = rgb(PAL.plot);
+}
+/* #rgb / #rrggbb -> [r,g,b] */
+function rgb(hex){
+  let h = (hex || "").replace("#","").trim();
+  if(h.length === 3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+  if(h.length !== 6) return [128,128,128];
+  const n = parseInt(h,16);
+  return [(n>>16)&255, (n>>8)&255, n&255];
 }
 /* #rgb / #rrggbb -> rgba() so canvas work can carry its own alpha */
 function hexa(hex, a){
@@ -1078,6 +1211,70 @@ function renderFrame(cv, item, phase){
 
   plateFinish(c,w,h,dark,r);
 }
+/* ---------- the lit field ----------
+   Four slow blooms drawn into a 200x120 canvas and stretched over the
+   whole viewport. Being upscaled that far is the point: it arrives
+   already soft, so every panel above it can be plain translucent paint
+   and still read as glass, with no backdrop-filter to pay for.
+
+   The same blooms are also solved analytically, so the cover type can
+   take its colour from whatever is passing underneath it. */
+const fieldCv = $("#field");
+const fctx = fieldCv.getContext("2d");
+const FW = COARSE ? 120 : 200, FH = COARSE ? 72 : 120, ASPECT = FH/FW;
+fieldCv.width = FW; fieldCv.height = FH;
+
+const BLOOMS = [
+  {ax:.32, ay:.24, wx:.061, wy:.043, px:0.0, py:1.7, r:.40, warm:true,  w:1.00},
+  {ax:.24, ay:.30, wx:.038, wy:.070, px:2.3, py:0.4, r:.31, warm:false, w:0.62},
+  {ax:.28, ay:.19, wx:.049, wy:.031, px:4.1, py:3.1, r:.44, warm:true,  w:0.80},
+  {ax:.36, ay:.22, wx:.027, wy:.055, px:1.2, py:5.0, r:.28, warm:false, w:0.55}
+];
+const bpos = new Float64Array(BLOOMS.length*6);   // x, y, r2, r, g, b
+
+function fieldStep(t){
+  for(let i=0;i<BLOOMS.length;i++){
+    const b = BLOOMS[i], o = i*6;
+    bpos[o]   = 0.5 + b.ax*Math.sin(t*b.wx + b.px);
+    bpos[o+1] = 0.5 + b.ay*Math.sin(t*b.wy + b.py);
+    bpos[o+2] = b.r*b.r;
+    const c = b.warm ? PAL.rgbAccent : PAL.rgbPlot;
+    bpos[o+3] = c[0]; bpos[o+4] = c[1]; bpos[o+5] = c[2];
+  }
+}
+function drawField(){
+  fctx.fillStyle = PAL.paper;
+  fctx.fillRect(0,0,FW,FH);
+  const base = PAL.dark ? 0.20 : 0.075;
+  for(let i=0;i<BLOOMS.length;i++){
+    const o = i*6, a = base*BLOOMS[i].w;
+    const x = bpos[o]*FW, y = bpos[o+1]*FH, rad = BLOOMS[i].r*FW;
+    const head = bpos[o+3]+","+bpos[o+4]+","+bpos[o+5]+",";
+    const g = fctx.createRadialGradient(x,y,0,x,y,rad);
+    g.addColorStop(0, "rgba("+head+a+")");
+    g.addColorStop(1, "rgba("+head+"0)");
+    fctx.fillStyle = g;
+    fctx.fillRect(0,0,FW,FH);
+  }
+}
+/* which colour is the field pushing at this viewport point, and how hard.
+   `out` is filled with r,g,b; the return value is the strength. */
+function fieldTint(nx, ny, out){
+  let r=0, g=0, b=0, e=0;
+  for(let i=0;i<BLOOMS.length;i++){
+    const o = i*6;
+    const dx = nx - bpos[o];
+    const dy = (ny - bpos[o+1]) * ASPECT;        // back into canvas-x units
+    const d2 = (dx*dx + dy*dy) / bpos[o+2];
+    if(d2 >= 1) continue;
+    const w = (1-d2)*(1-d2);
+    r += bpos[o+3]*w; g += bpos[o+4]*w; b += bpos[o+5]*w; e += w;
+  }
+  if(e <= 0) return 0;
+  out[0] = r/e; out[1] = g/e; out[2] = b/e;
+  return e;
+}
+
 refreshPalette();
 
 /* ---------- plates: build, play, scrub ---------- */
@@ -1333,6 +1530,27 @@ const MODES = ["plot","ink","contour","scatter"];
 let cells = [], wW = 0, wH = 0, cell = 6, mode = 0, tapped = false;
 const pointer = {x:-9999, y:-9999, on:false};
 
+/* The cover type takes its colour from the field passing underneath it,
+   so the letterforms read as windows onto the background rather than as
+   paint on top of it. Twelve pre-mixed steps rather than a string per
+   cell - there are well over a thousand cells a frame. */
+let stageX = 0, stageY = 0;
+const RAMP_F = 5, RAMP_N = 6, ramps = [], tint = [0,0,0];
+let rampKey = "";
+function buildRamps(){
+  const ink = PAL.rgbInk, A = PAL.rgbAccent, P = PAL.rgbPlot;
+  for(let f=0; f<RAMP_F; f++){
+    const m = f/(RAMP_F-1);                       // 0 cool -> 1 warm
+    const c0 = P[0]+(A[0]-P[0])*m, c1 = P[1]+(A[1]-P[1])*m, c2 = P[2]+(A[2]-P[2])*m;
+    for(let j=0;j<RAMP_N;j++){
+      const k = (j/(RAMP_N-1)) * 0.34;
+      ramps[f*RAMP_N+j] = "rgb(" + Math.round(ink[0] + (c0-ink[0])*k) + ","
+                                 + Math.round(ink[1] + (c1-ink[1])*k) + ","
+                                 + Math.round(ink[2] + (c2-ink[2])*k) + ")";
+    }
+  }
+}
+
 function buildCells(){
   wW = wm.clientWidth; wH = wm.clientHeight;
   if(!wW || !wH) return;
@@ -1395,6 +1613,9 @@ function drawWordmark(t){
   wctx.clearRect(0,0,wW,wH);
   const M = MODES[mode];
   const ink = PAL.ink, hot = PAL.bright, cool = PAL.plot;
+  if(rampKey !== PAL.ink){ buildRamps(); rampKey = PAL.ink; }
+  const vw = innerWidth || 1, vh = innerHeight || 1;
+  const ox = stageX, oy = stageY - sy;
   const base = cell * (M === "ink" ? 0.86 : M === "plot" ? 0.78 : M === "contour" ? 0.72 : 0.58);
   const R = 118, R2 = R*R;
   const lit = [];
@@ -1431,7 +1652,21 @@ function drawWordmark(t){
     const x = p.x + dx2, y = p.y + wob + dy2;
     const sz = base * (1 + near*0.55);
     wctx.globalAlpha = fade * (M === "scatter" && !p.edge ? 0.55 : 1);
-    wctx.fillStyle = near > 0.35 ? hot : (M === "scatter" && !p.edge ? cool : ink);
+    if(near > 0.35){
+      wctx.fillStyle = hot;
+    } else if(M === "scatter" && !p.edge){
+      wctx.fillStyle = cool;
+    } else {
+      const e = fieldTint((ox + x)/vw, (oy + y)/vh, tint);
+      if(e > 0.03){
+        /* blend across the warm/cool axis rather than switching families,
+           or neighbouring letters jump between red and blue */
+        const f = Math.round(sat((tint[0] - tint[2] + 100)/260) * (RAMP_F-1));
+        wctx.fillStyle = ramps[f*RAMP_N + Math.min(RAMP_N-1, (e*RAMP_N)|0)];
+      } else {
+        wctx.fillStyle = ink;
+      }
+    }
 
     if(M === "ink" || M === "contour"){
       wctx.fillRect(x - sz/2, y - sz/2, sz, sz);
@@ -1534,9 +1769,8 @@ function torchAt(x,y){
     root.style.setProperty("--torch-o", COARSE ? ".5" : ".4");
   });
 }
-if(!RM){
+if(!RM && !COARSE){
   addEventListener("pointermove", (e) => torchAt(e.clientX, e.clientY), {passive:true});
-  addEventListener("touchmove",   (e) => { const t = e.touches[0]; if(t) torchAt(t.clientX, t.clientY); }, {passive:true});
 }
 
 /* ---------- taps leave ink ---------- */
@@ -1547,7 +1781,7 @@ if(!RM){
     if(lb.hasAttribute("open") || inkLive > 12) return;
     const tag = (e.target && e.target.tagName || "").toLowerCase();
     if(tag === "input" || tag === "textarea" || tag === "select") return;
-    torchAt(e.clientX, e.clientY);
+    if(!COARSE) torchAt(e.clientX, e.clientY);
     const d = document.createElement("span");
     d.className = "ink";
     d.style.left = e.pageX + "px";
@@ -1731,6 +1965,35 @@ const chapBtns = $$(".chap");
 const navLinks = $$(".bar nav a");
 let lastActive = "", lastPage = "", lastRate = -1, lastProg = -1, railH = 0;
 
+/* Nav, filters and the view toggle each move one mark rather than
+   repainting a new active item, so a state change reads as travel. */
+const navInk = $(".nav-ink");
+function slideTo(ink, target, xv, wv, ov){
+  if(!ink) return;
+  if(!target || !target.offsetWidth){ if(ov) ink.style.setProperty(ov, "0"); return; }
+  ink.style.setProperty(wv, target.offsetWidth + "px");
+  ink.style.setProperty(xv, target.offsetLeft + "px");
+  if(ov) ink.style.setProperty(ov, "1");
+}
+function syncNav(link){ slideTo(navInk, link, "--nx", "--nw", "--no"); }
+function activeNavLink(){
+  return navLinks.find((a) => a.classList.contains("on")) || null;
+}
+function syncGroup(sel){
+  const group = $(sel); if(!group) return;
+  slideTo(group.querySelector(".slide-ink"), group.querySelector("button.on"), "--sx", "--sw");
+}
+function syncIndicators(){
+  syncNav(activeNavLink());
+  syncGroup(".filters");
+  syncGroup(".views");
+}
+$$(".bar nav a").forEach((a) => {
+  a.addEventListener("pointerenter", () => syncNav(a));
+});
+const navEl = $(".bar nav");
+if(navEl) navEl.addEventListener("pointerleave", () => syncNav(activeNavLink()));
+
 function measure(){
   const hero = $("#cover");
   heroH = hero ? hero.offsetHeight : innerHeight;
@@ -1755,7 +2018,13 @@ function measure(){
     const r = el.getBoundingClientRect();
     uls.push({el, top: r.top + scrollY, last: -1});
   });
+  const stage = $("#stage");
+  if(stage){
+    const r = stage.getBoundingClientRect();
+    stageX = r.left; stageY = r.top + scrollY;
+  }
   railH = rail.clientHeight;
+  syncIndicators();
   appliedSy = -1;
   plotLast = -1;
   lastProg = -1;
@@ -1812,23 +2081,29 @@ function applyFX(){
     lastActive = active;
     chapBtns.forEach((b) => b.classList.toggle("on", b.dataset.id === active));
     navLinks.forEach((a) => a.classList.toggle("on", a.getAttribute("href") === "#" + active));
+    syncNav(activeNavLink());
     const ch = CHAPTERS.find((c) => c.id === active) || CHAPTERS[0];
     mNm.textContent = ch.nm;
   }
 }
 
-let loopRaf = 0;
+let loopRaf = 0, fieldPainted = -1e9;
+const FIELD_MS = COARSE ? 90 : 80;
 function frameLoop(t){
   const now = scrollY;
   vel = vel*0.86 + Math.abs(now - sy)*0.14;
   sy = now;
   if(sy !== appliedSy || vel > 0.05){ appliedSy = sy; applyFX(); }
+  fieldStep(t/1000);
+  if(t - fieldPainted > FIELD_MS){ fieldPainted = t; drawField(); }
   if(sy < heroH + 80){ autoSweep(t); drawWordmark(t); }
   updatePlot(false);
   loopRaf = requestAnimationFrame(frameLoop);
 }
 
 function paintAll(){
+  fieldStep(performance.now()/1000);
+  drawField();
   cards.forEach((rec) => renderFrame(rec.cv, rec.item, rec.phase));
   if(lb.hasAttribute("open")) renderFrame(lbCanvas, PLATES[lbIdx], lbPhase);
   updatePlot(true);
@@ -1913,6 +2188,8 @@ $("#brief").addEventListener("submit", (e) => {
 /* ---------- boot ---------- */
 function boot(){
   refreshPalette();
+  fieldStep(performance.now()/1000);
+  drawField();
   buildCells();
   measure();
   sy = scrollY;
