@@ -6,7 +6,7 @@ Two pages:
 
 | | | |
 |---|---|---|
-| `/` | **Landing** | Full-screen hero. The background video is scrubbed by horizontal mouse movement rather than played. React + TypeScript + Vite + Tailwind; source in `landing/`, built output at the root. |
+| `/` | **Landing** | Full-screen hero. The backdrop is a plotted figure drawn on `<canvas>` and scrubbed by horizontal mouse movement. React + TypeScript + Vite + Tailwind; source in `landing/`, built output at the root. |
 | `/notes/` | **The notebook** | A working log kept in public. One self-contained `index.html`: fonts embedded, artwork drawn on `<canvas>`, no external requests, no build step. |
 
 They link to each other — the landing page's nav and pills point at the

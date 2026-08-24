@@ -1,7 +1,25 @@
 # Landing hero
 
-React + TypeScript + Vite + Tailwind. A full-screen hero whose background
-video is scrubbed by horizontal mouse movement rather than played.
+React + TypeScript + Vite + Tailwind. A full-screen hero whose backdrop is
+scrubbed by horizontal mouse movement rather than played.
+
+## The backdrop is drawn, not filmed
+
+The reference design used a hosted mp4. That could not be relied on: the
+file belongs to a third party, sits on their CDN, and did not load. A
+locally encoded replacement was worse - the only encoder available here
+produced VP9 inside an MP4, which iOS will not play, in a fragmented
+container that reported the wrong duration and refused to seek at all.
+
+`Backdrop.tsx` draws it instead. There is no request to fail, no codec to
+be unsupported and no byte ranges to negotiate; the position is a number
+rather than a decoder state, so it scrubs exactly and instantly anywhere
+in its range. It is a few hundred bytes rather than megabytes, and it
+matches the notebook, which is drawn the same way.
+
+**To use real footage**, put the file somewhere you control, set
+`VIDEO_SRC` in `BackgroundVideo.tsx`, and swap the import in `App.tsx` -
+the two components take the same input.
 
     npm install
     npm run dev        # http://localhost:5173
