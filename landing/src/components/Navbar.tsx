@@ -113,17 +113,18 @@ export default function Navbar() {
           </button>
         </div>
 
-        <div className="flex h-[calc(100%-5rem)] flex-col justify-center gap-6 px-6 sm:px-10">
+        <div className="flex h-[calc(100%-5rem)] flex-col px-6 pb-6 sm:px-10">
+          <div className="my-auto flex flex-col gap-6">
           {BRAND.links.map((link, i) => (
             <a
               key={link.label}
               href={link.href}
               onClick={() => setMenuOpen(false)}
-              className="font-podium text-4xl font-extrabold uppercase text-white sm:text-5xl"
+              className="font-podium text-4xl font-extrabold uppercase tracking-tight text-white transition-colors hover:text-white/70 sm:text-5xl"
               style={{
                 opacity: menuOpen ? 1 : 0,
                 transform: menuOpen ? "translateY(0)" : "translateY(20px)",
-                transition: "opacity 0.5s ease, transform 0.5s ease",
+                transition: "opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
                 transitionDelay: `${i * 80 + 100}ms`,
               }}
             >
@@ -138,7 +139,7 @@ export default function Navbar() {
             style={{
               opacity: menuOpen ? 1 : 0,
               transform: menuOpen ? "translateY(0)" : "translateY(20px)",
-              transition: "opacity 0.5s ease, transform 0.5s ease",
+              transition: "opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
               transitionDelay: `${BRAND.links.length * 80 + 100}ms`,
             }}
           >
@@ -158,6 +159,12 @@ export default function Navbar() {
           >
             {BRAND.email}
           </p>
+          </div>
+
+          <div className="flex items-center justify-between border-t border-white/15 pt-5 font-inter text-[10px] uppercase tracking-widest text-white/60">
+            <span>{BRAND.menuFoot}</span>
+            <span>&copy; {new Date().getFullYear()}</span>
+          </div>
         </div>
       </div>
     </>
