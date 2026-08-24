@@ -9,7 +9,7 @@ export default function Hero() {
       id="top"
       className="relative z-10 flex min-h-[100svh] flex-col justify-center px-6 pb-16 pt-28 sm:px-10 lg:px-16 lg:pt-32"
     >
-      <div>
+      <div className="max-w-7xl">
         {/* tagline */}
         <div className="animate-fade-up mb-6 flex items-center gap-3 lg:mb-8">
           <Crown className="h-4 w-4 shrink-0 text-white/75" aria-hidden="true" />
@@ -39,7 +39,7 @@ export default function Hero() {
         <div className="animate-fade-up-delay-3 mt-8 flex flex-wrap items-center gap-4 sm:gap-6 lg:mt-10">
           <a
             href={H.action.href}
-            className="group inline-flex items-center gap-2 bg-black px-5 py-3 font-inter text-[11px] uppercase tracking-widest text-white transition-colors duration-300 hover:bg-neutral-900 sm:px-7 sm:py-4 sm:text-xs"
+            className="group inline-flex items-center gap-2 border border-neutral-800 bg-black px-5 py-3 font-inter text-[11px] uppercase tracking-widest text-white shadow-xl transition-colors duration-300 hover:border-neutral-600 hover:bg-neutral-900 sm:px-7 sm:py-4 sm:text-xs"
           >
             {H.action.label}
             <ArrowUpRight

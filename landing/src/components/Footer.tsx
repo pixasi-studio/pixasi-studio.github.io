@@ -15,6 +15,9 @@ export default function Footer() {
             >
               {BRAND.logo}
             </a>
+            <p className="mt-2 font-inter text-[11px] uppercase tracking-[0.25em] text-white/50">
+              {BRAND.publication}
+            </p>
             <p className="mt-4 max-w-xs font-inter text-sm leading-relaxed text-white/70">
               {F.line}
             </p>

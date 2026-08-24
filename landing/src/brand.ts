@@ -12,8 +12,12 @@
  */
 
 export const BRAND = {
-  logo: "anujsingh.notes",
+  /* The wordmark is the person, because the practice is one person.
+     anujsingh.notes stays the name of the publication - the notebook,
+     the domain, the thing work gets filed under. */
+  logo: "Anuj Singh",
   name: "Anuj Singh",
+  publication: "anujsingh.notes",
   email: "iamasr@duck.com",
   handle: "@anuj.fieldnotes",
   instagram: "https://instagram.com/anuj.fieldnotes",
@@ -187,6 +191,9 @@ export const BRAND = {
       { h: "Facebook", v: "/anuj.fieldnotes", href: "https://facebook.com/anuj.fieldnotes" },
     ],
   },
+
+  /* The rail along the bottom of the mobile menu. */
+  menuFoot: "Visuals · Video · Creative tech",
 
   footer: {
     line: "Visuals, video and creative tech. One person, one desk.",
