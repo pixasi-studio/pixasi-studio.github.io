@@ -2,18 +2,38 @@
 
 Anuj Singh — visuals, video & creative tech. One person, one desk.
 
-Two pages:
-
 | | | |
 |---|---|---|
-| `/` | **Landing** | Full-screen hero: a wide display headline over a backdrop drawn on `<canvas>` - a crimson field, a drifting key light and a plotted figure - that loops on its own and is pushed along by pointer or scroll. Self-hosted type, no external requests. React + TypeScript + Vite + Tailwind; source in `landing/`, built output at the root. |
-| `/notes/` | **The notebook** | A working log kept in public. One self-contained `index.html`: fonts embedded, artwork drawn on `<canvas>`, no external requests, no build step. |
-
-They link to each other — the landing page's nav, menu and button point at
-the notebook's entries, and the notebook's mark returns to the landing page.
+| `/` | **The site** | One page, five parts: the hero, the practice, the plates, the method and the contact block. The backdrop is drawn on `<canvas>` — a crimson field, a drifting key light and a plotted figure — that loops on its own and is pushed along by pointer or scroll. Self-hosted type, no external requests. React + TypeScript + Vite + Tailwind; source in `landing/`, built output at the root. |
+| `/notes/` | **The notebook** | The working log, kept as its own page. One self-contained `index.html`: fonts embedded, artwork drawn on `<canvas>`, no external requests, no build step. Linked from the site's footer; its mark returns to the site. |
 
 Both speak in the first person singular. This is one person at one desk;
 there is no "we" on either page, and a test fails on one.
+
+## What's on the front page
+
+Everything resolves in the page — the nav, the menu and every button are
+anchors into it.
+
+- **Hero** — the display headline over the live crimson field, with the
+  entrance staggered and the stats along the bottom.
+- **A running band** — six words, looped seamlessly by translating a
+  doubled strip exactly half its width.
+- **01 The practice** — who I am and how the three disciplines sit at one
+  desk, beside a facts list that pins open one row at a time.
+- **02 Plates** — six pieces, each drawn live on `<canvas>` in its own
+  discipline's language: a waveform with the cut marked, a harmonograph,
+  a render queue. Filterable by discipline; each opens the piece on
+  Instagram.
+- **03 Method** — the three ways a job usually goes, with what each one
+  covers.
+- **04 Signal** — the crimson block: the address, a copy button, the
+  profiles, and a form that composes a draft in your own mail app.
+  Nothing is posted anywhere.
+- **Throughout** — sections arrive as you reach them and stay put, the
+  navbar marks the section you are in and takes a ground of its own once
+  content is under it, and the whole thing holds still under
+  `prefers-reduced-motion`.
 
 ## What's interactive in the notebook
 

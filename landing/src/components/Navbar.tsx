@@ -1,11 +1,25 @@
 import { useEffect, useState } from "react";
 import { ArrowUpRight, X } from "lucide-react";
 import { BRAND } from "../brand";
+import { useCurrentSection } from "../hooks/useInView";
+
+const IDS = BRAND.links.map((l) => l.href.slice(1));
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const active = useCurrentSection(IDS);
 
-  // Escape closes it, and the page behind it does not scroll while it is up.
+  /* Over the hero the bar floats on the field; past it there is content
+     underneath, so it takes a ground of its own. */
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > window.innerHeight * 0.72);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Escape closes the menu, and the page behind it does not scroll while it is up.
   useEffect(() => {
     if (!menuOpen) return;
     const onKey = (event: KeyboardEvent) => {
@@ -20,26 +34,42 @@ export default function Navbar() {
     };
   }, [menuOpen]);
 
-  const wordmark =
-    "font-podium font-extrabold uppercase tracking-wider text-white";
+  const wordmark = "font-podium font-extrabold uppercase tracking-wider text-white";
 
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-40 flex items-center justify-between px-6 py-5 sm:px-10 lg:px-16 lg:py-7">
-        <a href="/" className={`${wordmark} text-xl sm:text-2xl lg:text-3xl`}>
+      <header
+        className={`fixed inset-x-0 top-0 z-40 flex items-center justify-between px-6 py-5 transition-colors duration-500 sm:px-10 lg:px-16 lg:py-7 ${
+          scrolled ? "bg-black/85 backdrop-blur-md lg:py-5" : ""
+        }`}
+      >
+        <a href="#top" className={`${wordmark} text-xl sm:text-2xl lg:text-3xl`}>
           {BRAND.logo}
         </a>
 
-        <nav className="hidden items-center gap-8 font-inter text-sm uppercase tracking-widest text-white/80 md:flex lg:gap-10">
-          {BRAND.links.map((link) => (
-            <a
-              key={link.label}
-              href={link.href}
-              className="transition-colors duration-300 hover:text-white"
-            >
-              {link.label}
-            </a>
-          ))}
+        <nav className="hidden items-center gap-8 font-inter text-sm uppercase tracking-widest md:flex lg:gap-10">
+          {BRAND.links.map((link) => {
+            const on = active === link.href.slice(1);
+            return (
+              <a
+                key={link.label}
+                href={link.href}
+                aria-current={on ? "true" : undefined}
+                className={`relative py-1 transition-colors duration-300 hover:text-white ${
+                  on ? "text-white" : "text-white/80"
+                }`}
+              >
+                {link.label}
+                {/* one mark that slides, rather than four that light up */}
+                <span
+                  aria-hidden="true"
+                  className={`absolute -bottom-0.5 left-0 h-px bg-crimson-bright transition-all duration-300 ${
+                    on ? "w-full opacity-100" : "w-0 opacity-0"
+                  }`}
+                />
+              </a>
+            );
+          })}
         </nav>
 
         <a
@@ -119,7 +149,7 @@ export default function Navbar() {
           {/* The address itself, not just a link to it - it is the one
               detail a person is most likely to want to copy by hand. */}
           <p
-            className="font-inter text-xs uppercase tracking-widest text-white/50"
+            className="font-inter text-xs uppercase tracking-widest text-white/70"
             style={{
               opacity: menuOpen ? 1 : 0,
               transition: "opacity 0.5s ease",

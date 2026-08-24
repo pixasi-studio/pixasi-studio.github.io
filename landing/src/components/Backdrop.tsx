@@ -271,6 +271,10 @@ export default function Backdrop() {
   useEffect(() => {
     const reduce = matchMedia("(prefers-reduced-motion: reduce)");
     const coarse = matchMedia("(pointer: coarse)");
+    /* The sections below the hero are opaque, so once they cover the
+       field there is nothing to animate - the loop stops rather than
+       burning frames behind them. */
+    let onHero = true;
     let running = !reduce.matches;
     let last = performance.now();
     let dirty = true;
@@ -279,7 +283,7 @@ export default function Backdrop() {
       raf.current = requestAnimationFrame(frame);
       const dt = Math.min(now - last, 250);
       last = now;
-      if (running && !document.hidden) {
+      if (running && onHero && !document.hidden) {
         phase.current = (phase.current + dt / 1000 / LOOP_SECONDS) % 1;
         dirty = true;
       }
@@ -313,7 +317,13 @@ export default function Backdrop() {
       prevX.current = event.clientX;
       prevY.current = event.clientY;
     };
-    const onScroll = () => nudge(0, 24);
+    const onScroll = () => {
+      const wasOnHero = onHero;
+      onHero = scrollY < innerHeight;
+      if (onHero) nudge(0, 24);
+      else if (wasOnHero) dirty = false;
+    };
+    onScroll();
     const onResize = () => {
       dirty = true;
       lastDraw.current = 0;

@@ -4,6 +4,12 @@
 import Backdrop from "./components/Backdrop";
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
+import Ticker from "./components/Ticker";
+import Practice from "./components/Practice";
+import Plates from "./components/Plates";
+import Method from "./components/Method";
+import Signal from "./components/Signal";
+import Footer from "./components/Footer";
 
 export default function App() {
   return (
@@ -12,7 +18,13 @@ export default function App() {
       <Navbar />
       <main>
         <Hero />
+        <Ticker />
+        <Practice />
+        <Plates />
+        <Method />
+        <Signal />
       </main>
+      <Footer />
     </>
   );
 }

@@ -1,8 +1,9 @@
-# Landing hero
+# The site
 
-React + TypeScript + Vite + Tailwind. One viewport-height section: a wide
-display headline, a tracked tagline, a call to action and a stats row,
-laid over a drawn backdrop.
+React + TypeScript + Vite + Tailwind. One page: the hero the design
+specifies, then the practice, the plates, the method and the contact
+block, all in the same crimson language. Every nav item is an anchor
+into this page.
 
 ## The backdrop is drawn, not filmed
 
@@ -114,9 +115,25 @@ That means the built output **can go stale**: re-run `npm run build` and
 commit it alongside any change under `landing/`. A workflow that builds
 on push would be the better answer.
 
+## The contact form composes, it does not post
+
+There is no server, so the action is a real `<a href="mailto:...">` kept
+in sync with the fields rather than a click handler that builds a URL
+and navigates. The address is then middle-clickable, copyable from the
+context menu, announced as a link and visible in the status bar before
+anyone commits to it; a visually hidden submit button keeps
+Enter-to-send working inside the fields. Nothing is posted or stored.
+
+## Plates are drawn, once
+
+Each of the six is a seeded `<canvas>` figure in its discipline's own
+language - a waveform with the cut marked for video, a harmonograph for
+visuals, a render queue for tech. They are drawn on mount and on resize
+and never animated: six live canvases on one page is not worth the frame
+budget when nothing about them moves.
+
 ## The other page
 
 The notebook lives at `/notes/` (source: `notes/index.html`), still one
-self-contained file with no build step. The two link to each other: this
-page's nav, menu and button point at the notebook's entries, and the
-notebook's mark returns here.
+self-contained file with no build step. The site's footer links to it,
+and the notebook's mark returns here.
