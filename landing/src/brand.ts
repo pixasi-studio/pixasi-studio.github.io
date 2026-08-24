@@ -17,7 +17,7 @@ export const BRAND = {
 
   /** Typed one character at a time. */
   greeting:
-    "Glad you stopped in. Everything here started as a note. So, what are we making?",
+    "Glad you stopped in. Everything here started as a note. So, what can I make you?",
 
   /** The white action pills. */
   actions: [

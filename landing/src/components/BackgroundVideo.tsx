@@ -6,6 +6,15 @@ const VIDEO_SRC =
 const SENSITIVITY = 0.8;
 
 /**
+ * The wall behind the character in the reference clip. It sits under the
+ * video so that a frame which has not decoded yet - or a source that
+ * refuses to serve at all - leaves the page looking like the design
+ * rather than a white void. The video is hotlinked from someone else's
+ * CDN, so failing to load is a live possibility, not a hypothetical.
+ */
+const WALL = "#c9c6c1";
+
+/**
  * Full-screen backdrop that never plays on its own: horizontal mouse
  * movement scrubs it forward and backward.
  *
@@ -44,6 +53,13 @@ export default function BackgroundVideo() {
     seeking.current = true;
     requestedTime.current = targetTime.current;
     video.currentTime = targetTime.current;
+  };
+
+  const handleError = () => {
+    // Nothing to recover to: the wall underneath is the fallback. Marking
+    // the element makes the failure visible in devtools instead of
+    // silently looking like a design choice.
+    videoRef.current?.setAttribute("data-video", "failed");
   };
 
   const handleSeeked = () => {
@@ -111,9 +127,10 @@ export default function BackgroundVideo() {
       playsInline
       preload="auto"
       onLoadedData={handleLoadedData}
+      onError={handleError}
       onSeeked={handleSeeked}
       className="fixed inset-0 z-0 h-full w-full object-cover"
-      style={{ objectPosition: "70% center" }}
+      style={{ objectPosition: "70% center", backgroundColor: WALL }}
     />
   );
 }
