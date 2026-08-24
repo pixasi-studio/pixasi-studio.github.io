@@ -84,14 +84,14 @@ export default function Hero() {
             transition: "opacity 0.4s ease, transform 0.4s ease",
           }}
         >
-          {BRAND.actions.map((label) => (
-            <button
-              key={label}
-              type="button"
+          {BRAND.actions.map((action) => (
+            <a
+              key={action.label}
+              href={action.href}
               className={`${pill} border border-black/10 bg-white text-black hover:bg-black hover:text-white`}
             >
-              {label}
-            </button>
+              {action.label}
+            </a>
           ))}
 
           <button

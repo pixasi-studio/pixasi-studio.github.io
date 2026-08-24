@@ -10,18 +10,25 @@ video is scrubbed by horizontal mouse movement rather than played.
 
 ## Where the built output goes
 
-`vite.config.ts` sets `base: "/hero/"` and `build.outDir: "../hero"`, and
-`hero/` is committed. GitHub Pages serves this repo straight from the
-branch with no build step, so the built files have to be in the tree for
-the page to exist at `/hero/`.
+This is the front page, so it builds to the repo root: `index.html` plus
+`assets/`. Both are committed, because GitHub Pages serves this branch
+with no build step.
 
-That means **`hero/` can go stale**: re-run `npm run build` and commit it
-alongside any change under `landing/`. If that gets annoying, the better
-fix is a workflow that builds on push and publishes the artifact — happy
-to add one.
+`emptyOutDir` is **false and must stay false** — the out directory is the
+repository itself, and emptying it would delete the project. Stale hashed
+assets are cleared by the `prebuild` script, which only ever removes
+`../assets`.
 
-This is a separate page. The root `index.html` — the anuj.fieldnotes
-notebook — is untouched and still self-contained with no build step.
+That means the built output **can go stale**: re-run `npm run build` and
+commit it alongside any change under `landing/`. A workflow that builds
+on push would be the better answer.
+
+## The other page
+
+The notebook lives at `/notes/` (source: `notes/index.html`). It is still
+one self-contained file with no build step. The two link to each other:
+this page's nav and pills point at the notebook's entries, and the
+notebook's logo returns here.
 
 ## Brand strings
 
