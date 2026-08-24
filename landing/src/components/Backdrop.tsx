@@ -17,19 +17,22 @@ import { useCallback, useEffect, useRef } from "react";
  * swap in App.tsx.
  *
  * Two things keep the loop cheap enough to leave running on a phone.
- * Everything that never changes - the room, the scrim, the grain, the
+ * Everything that never changes - the field, the scrim, the grain, the
  * vignette - is painted once into two plates and blitted, so a frame is
  * two image copies rather than seven full-canvas fills. And it renders
- * at one device pixel per CSS pixel: this is a soft, near-black image
+ * at one device pixel per CSS pixel: this is a soft, flat-toned image
  * where a retina buffer costs four times the fill rate and buys
  * nothing. Together they took a throttled phone from 4fps to a steady
  * cap.
  */
 
-const BASE_TOP = "#1b1a20";
-const BASE_BOT = "#0e0e11";
-const ACCENT = "184,64,42"; /* the notebook's rust */
-const PLOT = "86,132,168";
+/* Sampled off the reference frame: a saturated crimson that runs about
+   #980d27 on the side the copy sits and brightens to #c61130 through
+   the centre-right, with the corners falling away to near black. */
+const FIELD_CORE = "#d21a3c";
+const FIELD_MID = "#b81130";
+const FIELD_EDGE = "#8a0c20";
+const FIELD_DEEP = "#7d0b1d"; /* the canvas fallback, before a frame lands */
 const LOOP_SECONDS = 44;
 const NUDGE = 0.55; /* how far a full-width swipe pushes the loop */
 const NARROW = 768;
@@ -58,7 +61,7 @@ function grainTile() {
 }
 
 /**
- * The two still layers: the room the light moves through, and
+ * The two still layers: the field the light moves across, and
  * everything that sits on top of the drawing.
  */
 function buildPlates(w: number, h: number): Plates | null {
@@ -70,10 +73,22 @@ function buildPlates(w: number, h: number): Plates | null {
   const u = under.getContext("2d");
   if (!u) return null;
 
-  const room = u.createLinearGradient(0, 0, 0, h);
-  room.addColorStop(0, BASE_TOP);
-  room.addColorStop(1, BASE_BOT);
-  u.fillStyle = room;
+  /* The field is lit from the centre-right, the way the reference is,
+     so the brightest part of it falls where nothing is written. */
+  u.fillStyle = FIELD_MID;
+  u.fillRect(0, 0, w, h);
+  const field = u.createRadialGradient(
+    w * (narrow ? 0.78 : 0.64),
+    h * 0.42,
+    0,
+    w * (narrow ? 0.78 : 0.64),
+    h * 0.42,
+    Math.max(w, h) * 0.88
+  );
+  field.addColorStop(0, FIELD_CORE);
+  field.addColorStop(0.5, FIELD_MID);
+  field.addColorStop(1, FIELD_EDGE);
+  u.fillStyle = field;
   u.fillRect(0, 0, w, h);
 
   const over = document.createElement("canvas");
@@ -89,19 +104,27 @@ function buildPlates(w: number, h: number): Plates | null {
      its hold-back is too. */
   const scrim = o.createLinearGradient(0, 0, w, 0);
   if (narrow) {
-    scrim.addColorStop(0, "rgba(6,6,9,0.62)");
-    scrim.addColorStop(1, "rgba(6,6,9,0.5)");
+    scrim.addColorStop(0, "rgba(24,2,8,0.4)");
+    scrim.addColorStop(1, "rgba(24,2,8,0.3)");
   } else {
-    scrim.addColorStop(0, "rgba(6,6,9,0.72)");
-    scrim.addColorStop(0.55, "rgba(6,6,9,0.36)");
-    scrim.addColorStop(1, "rgba(6,6,9,0.04)");
+    scrim.addColorStop(0, "rgba(24,2,8,0.34)");
+    scrim.addColorStop(0.5, "rgba(24,2,8,0.14)");
+    scrim.addColorStop(1, "rgba(24,2,8,0)");
   }
   o.fillStyle = scrim;
   o.fillRect(0, 0, w, h);
 
+  /* The nav sits over the brightest part of the field on a wide screen,
+     so the top band is held back the way the copy side is. */
+  const cap = o.createLinearGradient(0, 0, 0, 160);
+  cap.addColorStop(0, "rgba(24,2,8,0.34)");
+  cap.addColorStop(1, "rgba(24,2,8,0)");
+  o.fillStyle = cap;
+  o.fillRect(0, 0, w, 160);
+
   const foot = o.createLinearGradient(0, h * 0.55, 0, h);
-  foot.addColorStop(0, "rgba(4,4,6,0)");
-  foot.addColorStop(1, "rgba(4,4,6,0.55)");
+  foot.addColorStop(0, "rgba(18,2,7,0)");
+  foot.addColorStop(1, "rgba(18,2,7,0.18)");
   o.fillStyle = foot;
   o.fillRect(0, h * 0.55, w, h * 0.45);
 
@@ -115,13 +138,13 @@ function buildPlates(w: number, h: number): Plates | null {
   const v = o.createRadialGradient(
     w / 2,
     h / 2,
-    Math.min(w, h) * 0.32,
+    Math.min(w, h) * 0.55,
     w / 2,
     h / 2,
-    Math.max(w, h) * 0.8
+    Math.max(w, h) * 0.85
   );
   v.addColorStop(0, "rgba(0,0,0,0)");
-  v.addColorStop(1, "rgba(0,0,0,0.45)");
+  v.addColorStop(1, "rgba(14,1,5,0.34)");
   o.fillStyle = v;
   o.fillRect(0, 0, w, h);
 
@@ -162,13 +185,13 @@ export default function Backdrop() {
 
     x.drawImage(plates.current.under, 0, 0);
 
-    // a key light drifting across the room, warm, well right of the type
+    // a hot key light drifting across the field, well right of the type
     const lx = w * (0.66 + 0.13 * Math.sin(turn));
     const ly = h * (0.3 + 0.12 * Math.cos(turn * 0.7));
     const key = x.createRadialGradient(lx, ly, 0, lx, ly, Math.max(w, h) * 0.78);
-    key.addColorStop(0, "rgba(255,231,201,0.26)");
-    key.addColorStop(0.4, "rgba(255,231,201,0.09)");
-    key.addColorStop(1, "rgba(255,231,201,0)");
+    key.addColorStop(0, "rgba(255,132,96,0.17)");
+    key.addColorStop(0.4, "rgba(255,108,72,0.06)");
+    key.addColorStop(1, "rgba(255,108,72,0)");
     x.fillStyle = key;
     x.fillRect(0, 0, w, h);
 
@@ -223,20 +246,20 @@ export default function Backdrop() {
     x.lineJoin = "round";
     x.lineCap = "round";
 
-    x.strokeStyle = `rgba(${PLOT},${0.22 * fade})`;
+    x.strokeStyle = `rgba(255,214,206,${0.16 * fade})`;
     x.lineWidth = 1;
     trace(0, 2000);
 
-    x.strokeStyle = `rgba(226,222,214,${0.28 * fade})`;
+    x.strokeStyle = `rgba(255,240,236,${0.22 * fade})`;
     x.lineWidth = 1.3;
     trace(0, 1500);
 
     // the pen, at the head of the trace
     const head = 1500;
-    x.strokeStyle = `rgba(${ACCENT},${0.85 * fade})`;
+    x.strokeStyle = `rgba(255,255,255,${0.9 * fade})`;
     x.lineWidth = 2;
     trace(head - 200, head);
-    x.fillStyle = `rgba(${ACCENT},${fade})`;
+    x.fillStyle = `rgba(255,255,255,${fade})`;
     x.beginPath();
     x.arc(px(head - 1), py(head - 1), 3.2, 0, Math.PI * 2);
     x.fill();
@@ -318,7 +341,7 @@ export default function Backdrop() {
       ref={canvasRef}
       aria-hidden="true"
       className="fixed inset-0 -z-10 h-full w-full"
-      style={{ backgroundColor: BASE_BOT }}
+      style={{ backgroundColor: FIELD_DEEP }}
     />
   );
 }

@@ -6,7 +6,7 @@ Two pages:
 
 | | | |
 |---|---|---|
-| `/` | **Landing** | Full-screen hero: a wide display headline over a backdrop drawn on `<canvas>` - a lit room, a drifting key light and a plotted figure - that loops on its own and is pushed along by pointer or scroll. Self-hosted type, no external requests. React + TypeScript + Vite + Tailwind; source in `landing/`, built output at the root. |
+| `/` | **Landing** | Full-screen hero: a wide display headline over a backdrop drawn on `<canvas>` - a crimson field, a drifting key light and a plotted figure - that loops on its own and is pushed along by pointer or scroll. Self-hosted type, no external requests. React + TypeScript + Vite + Tailwind; source in `landing/`, built output at the root. |
 | `/notes/` | **The notebook** | A working log kept in public. One self-contained `index.html`: fonts embedded, artwork drawn on `<canvas>`, no external requests, no build step. |
 
 They link to each other — the landing page's nav, menu and button point at

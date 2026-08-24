@@ -14,11 +14,18 @@ here produced VP9 inside an MP4, which iOS will not play, in a
 fragmented container that reported the wrong duration and refused to
 seek at all.
 
-`Backdrop.tsx` draws it instead: a lit room, a key light drifting across
-it, and a harmonograph — the same figure the notebook plots. There is no
-request to fail, no codec to be unsupported and no megabytes to ship.
-It loops on its own the way the video would have, and pointer or scroll
-movement pushes it along on top of that.
+`Backdrop.tsx` draws it instead. The colours are sampled straight off
+the reference frame: a saturated crimson running about `#980d27` on the
+side the copy sits and brightening to `#c61130` through the
+centre-right, with the corners falling away to near black. Over it a hot
+key light drifts and a harmonograph plots — the same figure the notebook
+draws. There is no request to fail, no codec to be unsupported and no
+megabytes to ship. It loops on its own the way the video would have, and
+pointer or scroll movement pushes it along on top of that.
+
+The reference's foreground is licensed characters from other people's
+franchises. Those are not reproduced; what is matched is the field, the
+lighting and the treatment.
 
 **To use real footage**, host the file yourself, set `SRC` in
 `BackgroundVideo.tsx`, and swap the import in `App.tsx`. That component
@@ -30,12 +37,12 @@ on `object-cover` — and fills the same layer.
 A first pass repainted every layer each frame and measured **4fps** on a
 4×-throttled phone. Both fixes are load-bearing:
 
-- **The still layers are cached.** The room, the scrim, the grain and
+- **The still layers are cached.** The field, the scrim, the grain and
   the vignette never change, so they are painted once into two plates
   and blitted either side of the moving parts. A frame is two image
   copies, one gradient and the trace — not seven full-canvas fills.
 - **It renders one canvas pixel per CSS pixel.** This is a soft,
-  near-black image; a retina buffer costs four times the fill rate and
+  flat-toned image; a retina buffer costs four times the fill rate and
   buys nothing visible.
 
 Together: 60fps at 4×, 47fps at 6×, no frame over 50ms.
@@ -43,10 +50,23 @@ Together: 60fps at 4×, 47fps at 6×, no frame over 50ms.
 ## Contrast is drawn in, not hoped for
 
 The design puts white type straight onto the footage. Rather than trust
-whatever the frame happens to be, `Backdrop` paints a scrim over the
-side the copy sits on — full width on a phone, where the copy is full
-width. The test asserts ≥7:1 (WCAG AAA) at two dozen points under the
-headline; it currently measures about 17:1.
+whatever the frame happens to be, `Backdrop` paints the hold-back in: a
+scrim down the side the copy sits on (full width on a phone, where the
+copy is full width), a cap under the navbar, and a foot under the stats.
+
+A saturated red is a much harder ground for white than the near-black
+this started as, so every text node is audited rather than one place
+sampled: each node's computed colour is blended over fifteen points of
+the canvas actually painted beneath it and checked against WCAG AA for
+its size. All 35 nodes pass on desktop and iPhone 13; the worst is
+4.78:1.
+
+Getting there meant lifting the quiet tier of text above what the design
+specifies — stat labels from `text-white/50` to `/70`, the badge from
+`/60` to `/75`, the subtext and tagline from `/70` to `/75`. At 9-12px
+over crimson the specified values land between 3.4:1 and 4.3:1, which is
+not readable. The navbar keeps its `/80`; the cap gradient does that work
+instead.
 
 ## Type
 

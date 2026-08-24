@@ -7,8 +7,8 @@ export default function Hero() {
       <div>
         {/* tagline */}
         <div className="animate-fade-up mb-6 flex items-center gap-3 lg:mb-8">
-          <Crown className="h-4 w-4 shrink-0 text-white/70" aria-hidden="true" />
-          <p className="font-inter text-xs uppercase tracking-[0.3em] text-white/70 sm:text-sm">
+          <Crown className="h-4 w-4 shrink-0 text-white/75" aria-hidden="true" />
+          <p className="font-inter text-xs uppercase tracking-[0.3em] text-white/75 sm:text-sm">
             {BRAND.tagline}
           </p>
         </div>
@@ -26,7 +26,7 @@ export default function Hero() {
         </h1>
 
         {/* subtext */}
-        <p className="animate-fade-up-delay-2 mt-6 max-w-md font-inter text-sm leading-relaxed text-white/70 sm:text-base lg:mt-8">
+        <p className="animate-fade-up-delay-2 mt-6 max-w-md font-inter text-sm leading-relaxed text-white/75 sm:text-base lg:mt-8">
           {BRAND.subtextLine1}
           <br />
           {BRAND.subtextLine2}{" "}
@@ -49,8 +49,8 @@ export default function Hero() {
           </a>
 
           <div className="hidden items-center gap-3 sm:flex">
-            <Award className="h-8 w-8 shrink-0 text-white/50" aria-hidden="true" />
-            <p className="font-inter text-xs uppercase leading-snug tracking-wider text-white/60">
+            <Award className="h-8 w-8 shrink-0 text-white/65" aria-hidden="true" />
+            <p className="font-inter text-xs uppercase leading-snug tracking-wider text-white/75">
               {BRAND.badge[0]}
               <br />
               {BRAND.badge[1]}
@@ -69,7 +69,7 @@ export default function Hero() {
                 </span>
                 <span
                   aria-hidden="true"
-                  className="mt-1 block font-inter text-[9px] uppercase tracking-widest text-white/50 sm:text-xs"
+                  className="mt-1 block font-inter text-[9px] uppercase tracking-widest text-white/70 sm:text-xs"
                 >
                   {stat.label}
                 </span>
