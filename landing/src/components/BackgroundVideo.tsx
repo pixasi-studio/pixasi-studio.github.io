@@ -51,6 +51,28 @@ export default function BackgroundVideo() {
     requestSeek();
   };
 
+  /**
+   * A paused video that has never played paints nothing at all, and this
+   * one never plays. Without a nudge the backdrop stays blank until the
+   * visitor has moved the mouse twice, since the first move only
+   * establishes an origin.
+   *
+   * The nudge has to cross a frame boundary to force a decode. Measured
+   * against a 25fps clip, seeking to 0.001 or 0.01 changed `currentTime`
+   * and fired `seeked` but painted nothing - both land inside frame 0.
+   * 0.04 was the first value that put a frame on screen. 0.05 clears one
+   * frame at 24 and 25fps and is still indistinguishable from the start.
+   */
+  const FIRST_FRAME = 0.05;
+  const handleLoadedData = () => {
+    const video = videoRef.current;
+    if (!video || requestedTime.current !== null) return;
+    seeking.current = true;
+    targetTime.current = FIRST_FRAME;
+    requestedTime.current = FIRST_FRAME;
+    video.currentTime = FIRST_FRAME;
+  };
+
   useEffect(() => {
     const onMouseMove = (event: MouseEvent) => {
       const video = videoRef.current;
@@ -88,6 +110,7 @@ export default function BackgroundVideo() {
       muted
       playsInline
       preload="auto"
+      onLoadedData={handleLoadedData}
       onSeeked={handleSeeked}
       className="fixed inset-0 z-0 h-full w-full object-cover"
       style={{ objectPosition: "70% center" }}
