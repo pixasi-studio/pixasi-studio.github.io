@@ -4,7 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>anuj.fieldnotes</title>
-<script>document.documentElement.className="js";</script>
+<script>
+document.documentElement.className="js";
+try{
+  var t=localStorage.getItem("fieldnotes-theme");
+  if(t==="dark"||t==="light") document.documentElement.dataset.theme=t;
+}catch(e){}
+</script>
 <meta name="description" content="anuj.fieldnotes is Anuj Singh - a working notebook of visuals, video and creative tech, kept in public.">
 <meta name="author" content="Anuj Singh">
 <meta name="theme-color" content="#101215" media="(prefers-color-scheme: dark)">
@@ -725,6 +731,97 @@ form button:hover{color:var(--paper);}
   .bars i{animation:none;transform:none;}
   .nav-ink,.slide-ink{transition:none;}
 }
+
+/* ============================================================
+   Depth
+   ------------------------------------------------------------
+   Perspective lives on the containers, so a plate tilts in real
+   3D toward whatever is pointing at it and the viewer arrives
+   with a little distance rather than a fade.
+   ============================================================ */
+.grid{perspective:1100px;}
+.card .frame{
+  transform-style:preserve-3d;
+  transform:
+    perspective(900px)
+    rotateX(calc(var(--ty,0) * -5deg))
+    rotateY(calc(var(--tx,0) * 6deg))
+    translate3d(0,var(--lift,0px),0);
+  transition:border-color .25s ease,box-shadow .35s ease,transform .5s var(--ease-out);
+}
+.card.tilting .frame{transition:border-color .25s ease,box-shadow .35s ease;}
+.card:hover .frame{--lift:-4px;}
+/* the badge and plate number ride above the plate surface */
+.card .plate,.card .badge{transform:translateZ(18px);}
+.card .frame::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(105deg,
+    transparent 30%,
+    color-mix(in srgb,var(--paper) 26%,transparent) 48%,
+    transparent 66%);
+  opacity:var(--sheen,0);transition:opacity .4s ease;
+  transform:translateX(calc(var(--tx,0) * 22%));
+}
+.card:hover .frame::after{opacity:1;}
+@media (hover:none){.card .frame::after{display:none;}}
+
+.lb .lb-inner{
+  transform:perspective(1400px) rotateX(3.5deg) scale(.965);
+  opacity:0;
+  transition:transform .5s var(--ease-out),opacity .38s ease;
+}
+.lb[open] .lb-inner{transform:none;opacity:1;}
+
+/* the cover plate gets the same treatment as a whole */
+.stage{transform-style:preserve-3d;}
+.stage .corner{transition:transform .5s var(--ease-out);}
+.stage:hover .c1{transform:translate3d(-3px,-3px,0);}
+.stage:hover .c2{transform:translate3d(3px,-3px,0);}
+.stage:hover .c3{transform:translate3d(-3px,3px,0);}
+.stage:hover .c4{transform:translate3d(3px,3px,0);}
+
+@media (prefers-reduced-motion:reduce){
+  .card .frame{transform:none;}
+  .lb .lb-inner{transform:none;opacity:1;transition:none;}
+  .stage .corner{transform:none!important;}
+}
+
+/* ---------- copy the address ---------- */
+.mailrow{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.copy{
+  display:inline-flex;align-items:center;gap:7px;cursor:pointer;
+  background:var(--glass-soft);border:1px solid var(--glass-line);color:var(--muted);
+  padding:7px 12px;font-size:.64rem;
+  transition:color .25s ease,border-color .25s ease,background .25s ease,transform .3s var(--ease-out);
+}
+.copy:hover{color:var(--ink);border-color:var(--ink-2);transform:translateY(-1px);}
+.copy.done{color:var(--accent);border-color:var(--accent);background:color-mix(in srgb,var(--accent) 9%,transparent);}
+.copy svg{transition:transform .3s var(--ease-out);}
+.copy.done svg{transform:scale(1.15);}
+
+/* ---------- keyboard hints ---------- */
+.keys{margin:26px 0 0;color:var(--muted);font-size:.6rem;letter-spacing:.14em;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.keys b{
+  font-weight:400;color:var(--ink-2);border:1px solid var(--glass-line);
+  background:var(--glass-soft);padding:2px 6px;border-radius:3px;
+}
+.keys span{opacity:.5;}
+@media (hover:none){.keys{display:none;}}
+
+/* ---------- back to the top ---------- */
+.totop{
+  position:fixed;right:calc(var(--ruler-w) + 14px);bottom:26px;z-index:55;
+  width:40px;height:40px;display:grid;place-items:center;cursor:pointer;
+  background:var(--glass);border:1px solid var(--glass-line);color:var(--ink-2);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  border-radius:50%;
+  opacity:0;transform:translateY(12px) scale(.9);pointer-events:none;
+  transition:opacity .4s ease,transform .45s var(--ease-out),color .25s,border-color .25s;
+}
+.totop.show{opacity:1;transform:none;pointer-events:auto;}
+.totop:hover{color:var(--accent);border-color:var(--accent);}
+@media (max-width:1100px){.totop{right:16px;bottom:18px;}}
+@media (prefers-reduced-motion:reduce){.totop{transition:opacity .2s;transform:none;}}
 </style>
 </head>
 <body>
@@ -839,6 +936,7 @@ form button:hover{color:var(--paper);}
     </div>
   </div>
   <div class="grid" id="grid"></div>
+  <p class="keys mono" aria-hidden="true"><b>G</b>/<b>L</b> view <span>&middot;</span> <b>1</b>&ndash;<b>4</b> filter <span>&middot;</span> <b>T</b> invert</p>
   <p class="feednote">Drag any plate sideways to scrub it by hand, or tap to open it. Everything posts to Instagram first &mdash; <a href="https://instagram.com/anuj.fieldnotes" target="_blank" rel="noopener">follow @anuj.fieldnotes</a> for the running feed.</p>
   <noscript><p class="feednote">The plates are drawn in the browser, so they need JavaScript. The work itself lives on <a href="https://instagram.com/anuj.fieldnotes" target="_blank" rel="noopener">@anuj.fieldnotes</a>.</p></noscript>
 </section>
@@ -882,9 +980,15 @@ form button:hover{color:var(--paper);}
     <div>
       <h2 class="disp">Got something<br>half-formed?</h2>
       <p class="say"><span class="ul">Half-formed is the good stage</span>. Send the rough version &mdash; a reference, a deadline, a budget range &mdash; and I&rsquo;ll tell you straight whether I&rsquo;m the right person for it.</p>
-      <a class="mailto" href="mailto:iamasr@duck.com">iamasr@duck.com
-        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M3.5 11.5L11.5 3.5M11.5 3.5H5M11.5 3.5V10" stroke="currentColor" stroke-width="1.4"/></svg>
-      </a>
+      <div class="mailrow">
+        <a class="mailto" href="mailto:iamasr@duck.com">iamasr@duck.com
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M3.5 11.5L11.5 3.5M11.5 3.5H5M11.5 3.5V10" stroke="currentColor" stroke-width="1.4"/></svg>
+        </a>
+        <button class="copy mono" id="copy-mail" type="button">
+          <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden="true"><rect x="1.5" y="4.5" width="8" height="8" stroke="currentColor"/><path d="M4.5 4.5v-3h8v8h-3" stroke="currentColor"/></svg>
+          <span>Copy</span>
+        </button>
+      </div>
       <div class="socials">
         <a href="https://instagram.com/anuj.fieldnotes" target="_blank" rel="noopener"><span class="h">Instagram</span><span class="v">@anuj.fieldnotes</span><span class="arw mono">&rarr;</span></a>
         <a href="https://youtube.com/@anuj.fieldnotes" target="_blank" rel="noopener"><span class="h">YouTube</span><span class="v">@anuj.fieldnotes</span><span class="arw mono">&rarr;</span></a>
@@ -916,6 +1020,9 @@ form button:hover{color:var(--paper);}
     <button id="theme" class="mono"><span>Invert</span></button>
   </div>
 </footer>
+<button class="totop mono" id="totop" type="button" aria-label="Back to the top">
+  <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M7 12V2M3 6l4-4 4 4" stroke="currentColor" stroke-width="1.5"/></svg>
+</button>
 </main>
 
 <div class="lb" id="lb" role="dialog" aria-modal="true" aria-labelledby="lb-title">
@@ -998,7 +1105,11 @@ function hexa(hex, a){
 /* ---------- theme ---------- */
 $("#theme").addEventListener("click", () => {
   const next = isDark() ? "light" : "dark";
-  const apply = () => { root.dataset.theme = next; refreshPalette(); paintAll(); };
+  const apply = () => {
+    root.dataset.theme = next;
+    try{ localStorage.setItem("fieldnotes-theme", next); }catch(e){}
+    refreshPalette(); paintAll();
+  };
   if(document.startViewTransition && !RM) document.startViewTransition(apply);
   else apply();
 });
@@ -1372,18 +1483,37 @@ PLATES.forEach((item, i) => {
   });
 });
 
-/* ---------- filters ---------- */
-$$(".filters button").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    $$(".filters button").forEach((x) => x.classList.toggle("on", x === btn));
-    const f = btn.dataset.f;
-    cards.forEach((rec) => {
-      const show = f === "all" || rec.item.cat === f;
-      rec.el.hidden = !show;
-      if(show) renderFrame(rec.cv, rec.item, rec.phase);
-    });
-    measure();
+/* ---------- filters ----------
+   The active filter is real state, not just `hidden` on the cards: the
+   viewer reads it too, so stepping never walks into a plate the visitor
+   has filtered away and the counter reports position within the set. */
+let activeFilter = "all";
+function visible(){
+  return PLATES.map((it,i) => i).filter((i) => activeFilter === "all" || PLATES[i].cat === activeFilter);
+}
+function applyFilter(f){
+  activeFilter = f;
+  $$(".filters button").forEach((x) => {
+    const on = x.dataset.f === f;
+    x.classList.toggle("on", on);
+    x.setAttribute("aria-pressed", String(on));
   });
+  cards.forEach((rec, i) => {
+    const show = f === "all" || rec.item.cat === f;
+    rec.el.hidden = !show;
+    if(show) renderFrame(rec.cv, rec.item, rec.phase);
+  });
+  if(lb.hasAttribute("open")){
+    const vis = visible();
+    if(vis.indexOf(lbIdx) === -1){ lbIdx = vis[0]; lbPhase = 0; }
+    paintLb();
+  }
+  syncGroup(".filters");
+  measure();
+}
+$$(".filters button").forEach((btn) => {
+  btn.setAttribute("aria-pressed", String(btn.classList.contains("on")));
+  btn.addEventListener("click", () => applyFilter(btn.dataset.f));
 });
 
 /* Touch has no hover, so a plate plays while it is the one centred
@@ -1432,24 +1562,54 @@ function paintLb(){
   $("#lb-title").textContent = item.t;
   $("#lb-desc").textContent  = item.d;
   $("#lb-open").href         = item.url;
-  $("#lb-idx").textContent   = String(lbIdx+1).padStart(2,"0") + " / " +
-                               String(PLATES.length).padStart(2,"0") + "  —  " + item.kind;
+  const vis = visible(), pos = vis.indexOf(lbIdx);
+  $("#lb-idx").textContent   = String((pos < 0 ? 0 : pos) + 1).padStart(2,"0") + " / " +
+                               String(vis.length).padStart(2,"0") + "  —  " + item.kind;
+  const alone = vis.length < 2;
+  $("#lb-prev").disabled = alone;
+  $("#lb-next").disabled = alone;
   $("#lb-specs").innerHTML   = item.s.map((p) => '<div><span>'+p[0]+'</span><span>'+p[1]+'</span></div>').join("");
   lbPlay();
 }
+/* Everything outside the panel goes inert while it is open: aria-modal
+   on a plain <div> is not enforced, so without this Tab walked straight
+   out of the panel and into content the visitor cannot see. */
+const OUTSIDE = "main,.bar,.rail,.ruler,.mrail,.paper,.torch,.field,.inklayer";
+function setOutsideInert(on){
+  $$(OUTSIDE).forEach((el) => { on ? el.setAttribute("inert","") : el.removeAttribute("inert"); });
+}
+const FOCUSABLE = 'a[href],button:not([disabled]),input,select,textarea,[tabindex]:not([tabindex="-1"])';
 function openLb(i){
   lastFocus = document.activeElement;
   lbIdx = i; lbPhase = 0;
   lb.setAttribute("open",""); document.body.style.overflow = "hidden";
+  setOutsideInert(true);
   paintLb();
   $("#lb-close").focus();
 }
 function closeLb(){
   lb.removeAttribute("open"); document.body.style.overflow = "";
   cancelAnimationFrame(lbRaf); lbRaf = 0;
+  setOutsideInert(false);                 // must clear before focus: inert refuses it
   if(lastFocus && lastFocus.focus) lastFocus.focus();
 }
-function step(d){ lbIdx = (lbIdx + d + PLATES.length) % PLATES.length; lbPhase = 0; paintLb(); }
+function trapTab(e){
+  const items = $$(FOCUSABLE).filter((el) => lb.contains(el) && el.offsetParent !== null);
+  if(!items.length) return;
+  const first = items[0], last = items[items.length-1];
+  if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+  else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+  else if(!lb.contains(document.activeElement)){ e.preventDefault(); first.focus(); }
+}
+function step(d){
+  const vis = visible();
+  if(vis.length < 2) return;
+  let at = vis.indexOf(lbIdx);
+  if(at < 0) at = 0;
+  lbIdx = vis[(at + d + vis.length) % vis.length];
+  lbPhase = 0;
+  paintLb();
+}
 $("#lb-close").addEventListener("click", closeLb);
 $("#lb-prev").addEventListener("click", () => step(-1));
 $("#lb-next").addEventListener("click", () => step(1));
@@ -1490,6 +1650,7 @@ addEventListener("keydown", (e) => {
   if(e.key === "Escape") closeLb();
   if(e.key === "ArrowRight") step(1);
   if(e.key === "ArrowLeft")  step(-1);
+  if(e.key === "Tab") trapTab(e);
 });
 
 /* ---------- marginalia: facts that pin open ---------- */
@@ -1535,6 +1696,13 @@ const pointer = {x:-9999, y:-9999, on:false};
    paint on top of it. Twelve pre-mixed steps rather than a string per
    cell - there are well over a thousand cells a frame. */
 let stageX = 0, stageY = 0;
+
+/* The mark holds still. It moves while a pointer, a finger or a tilt is
+   moving it, then settles and stops being drawn at all - no idle sweep,
+   no ambient wobble. `look` is that input, eased so it lands softly. */
+const look = {x:0, y:0, tx:0, ty:0};
+let wmSettled = false, lastDisperse = -1;
+const DEPTH = 11;
 const RAMP_F = 5, RAMP_N = 6, ramps = [], tint = [0,0,0];
 let rampKey = "";
 function buildRamps(){
@@ -1604,7 +1772,8 @@ function buildCells(){
     const x = gx*cell + cell/2, y = gy*cell + cell/2;
     cells.push({x, y, ox:x, oy:y, vx:0, vy:0, edge:edge,
                 j:((gx*7 + gy*13) % 17)/17 - 0.5,
-                k:((gx*11 + gy*5) % 13)/13 - 0.5});
+                k:((gx*11 + gy*5) % 13)/13 - 0.5,
+                z:((gx*5 + gy*3) % 11)/11});   // depth plane, 0 far .. 1 near
   }
 }
 
@@ -1621,6 +1790,9 @@ function drawWordmark(t){
   const lit = [];
   const fade = disperse > 0.002 ? Math.max(0, 1 - disperse*1.35) : 1;
   const e = disperse * disperse;
+  look.x += (look.tx - look.x) * 0.09;
+  look.y += (look.ty - look.y) * 0.09;
+  let motion = Math.abs(look.tx - look.x) + Math.abs(look.ty - look.y);
 
   for(let i=0;i<cells.length;i++){
     const p = cells[i];
@@ -1638,19 +1810,24 @@ function drawWordmark(t){
     p.vx += (p.ox - p.x) * 0.055; p.vy += (p.oy - p.y) * 0.055;
     p.vx *= 0.86; p.vy *= 0.86;
     p.x += p.vx; p.y += p.vy;
+    motion += Math.abs(p.vx) + Math.abs(p.vy);
 
     if(M === "contour" && !p.edge) continue;
 
-    const wob = RM ? 0 : Math.sin(t*0.0011 + p.ox*0.014 + p.oy*0.02) * 0.55;
-    let dx2 = 0, dy2 = 0;
+    /* parallax by depth: near cells travel further than far ones, so
+       moving across the mark opens it into layers rather than sliding
+       one flat sheet */
+    const par = RM ? 0 : 1;
+    let dx2 = -look.x * p.z * DEPTH * par;
+    let dy2 = -look.y * p.z * DEPTH * par * 0.6;
     if(e > 0){
-      dx2 = (p.ox - wW/2) * e * 1.15 + p.j * e * 92;
-      dy2 = (p.oy - wH/2) * e * 0.75 + p.j * e * 42;
+      dx2 += (p.ox - wW/2) * e * 1.15 + p.j * e * 92;
+      dy2 += (p.oy - wH/2) * e * 0.75 + p.j * e * 42;
     }
     if(M === "scatter"){ dx2 += p.j * cell * 2.1; dy2 += p.k * cell * 1.7; }
 
-    const x = p.x + dx2, y = p.y + wob + dy2;
-    const sz = base * (1 + near*0.55);
+    const x = p.x + dx2, y = p.y + dy2;
+    const sz = base * (1 + near*0.55) * (1 + p.z*0.18*par);
     wctx.globalAlpha = fade * (M === "scatter" && !p.edge ? 0.55 : 1);
     if(near > 0.35){
       wctx.fillStyle = hot;
@@ -1706,35 +1883,61 @@ function drawWordmark(t){
     wctx.restore();
   }
   wctx.globalAlpha = 1;
+  wmSettled = !pointer.on && motion < 0.06;
+  lastDisperse = disperse;
 }
+/* nothing to draw unless something is actually moving it */
+function wordmarkAwake(){
+  return pointer.on || !wmSettled || disperse !== lastDisperse;
+}
+function nudge(){ wmSettled = false; }
 
-/* pointer, finger, and - when nobody is driving - the field's own sweep */
-let userDrove = 0;
+/* pointer, finger and device tilt - the only things that move the mark */
 function aimAt(clientX, clientY){
   const r = wm.getBoundingClientRect();
   pointer.x = clientX - r.left;
   pointer.y = clientY - r.top;
   pointer.on = true;
-  userDrove = performance.now();
+  look.tx = clamp((pointer.x / (wW || 1)) * 2 - 1, -1, 1);
+  look.ty = clamp((pointer.y / (wH || 1)) * 2 - 1, -1, 1);
+  nudge();
 }
+function release(){ pointer.on = false; look.tx = 0; look.ty = 0; nudge(); }
 wm.addEventListener("pointermove", (e) => aimAt(e.clientX, e.clientY));
-wm.addEventListener("pointerleave", () => { pointer.on = false; });
+wm.addEventListener("pointerleave", release);
 wm.addEventListener("touchmove",  (e) => { const t = e.touches[0]; if(t) aimAt(t.clientX, t.clientY); }, {passive:true});
 wm.addEventListener("touchstart", (e) => { const t = e.touches[0]; if(t) aimAt(t.clientX, t.clientY); }, {passive:true});
-wm.addEventListener("touchend",   () => { userDrove = performance.now(); });
+wm.addEventListener("touchend",   release);
+wm.addEventListener("touchcancel", release);
 
-function autoSweep(t){
-  if(RM) return;
-  if(t - userDrove < 2500) return;
-  const p = (t/5200) % 1;
-  pointer.x = (0.5 + 0.62*Math.sin(p*Math.PI*2)) * (wW || 1);
-  pointer.y = (0.5 + 0.30*Math.sin(p*Math.PI*4 + 1.1)) * (wH || 1);
-  pointer.on = true;
+/* On a phone there is no pointer to move, so tilting the device is the
+   movement. iOS gates the sensor behind a gesture, so it is requested on
+   the first tap and simply stays off if declined. */
+function onTilt(ev){
+  if(ev.gamma == null || ev.beta == null) return;
+  look.tx = clamp(ev.gamma / 30, -1, 1);
+  look.ty = clamp((ev.beta - 40) / 30, -1, 1);
+  nudge();
+}
+let tiltAsked = false;
+function askTilt(){
+  if(tiltAsked || RM || !window.DeviceOrientationEvent) return;
+  tiltAsked = true;
+  const D = window.DeviceOrientationEvent;
+  if(typeof D.requestPermission === "function"){
+    D.requestPermission().then((r) => {
+      if(r === "granted") addEventListener("deviceorientation", onTilt);
+    }).catch(() => {});
+  } else if(COARSE){
+    addEventListener("deviceorientation", onTilt);
+  }
 }
 
 /* tapping the plate redraws the whole field a different way */
 const hint = $("#hint"), hintLead = $("#hint-lead"), modeNm = $("#mode-nm");
 function cycleMode(){
+  askTilt();
+  nudge();
   mode = (mode + 1) % MODES.length;
   modeNm.textContent = MODES[mode];
   if(!tapped){ tapped = true; hintLead.textContent = "Mode"; hint.classList.add("tapped"); }
@@ -1926,6 +2129,98 @@ function updatePlot(force){
 const svcArticles = $$("#svc article");
 $("#svc").classList.add("staged");
 
+/* ---------- plates tilt toward whatever is pointing at them ----------
+   The rect is cached on enter: reading layout on every pointermove is
+   what turns a tilt into jank. */
+if(!RM && !COARSE){
+  cards.forEach((rec) => {
+    const el = rec.el, frame = rec.frame;
+    let box = null;
+    el.addEventListener("pointerenter", () => {
+      box = frame.getBoundingClientRect();
+      el.classList.add("tilting");
+    });
+    el.addEventListener("pointermove", (e) => {
+      if(!box) return;
+      const tx = clamp(((e.clientX - box.left)/box.width)*2 - 1, -1, 1);
+      const ty = clamp(((e.clientY - box.top)/box.height)*2 - 1, -1, 1);
+      frame.style.setProperty("--tx", tx.toFixed(3));
+      frame.style.setProperty("--ty", ty.toFixed(3));
+    });
+    el.addEventListener("pointerleave", () => {
+      box = null;
+      el.classList.remove("tilting");
+      frame.style.setProperty("--tx", "0");
+      frame.style.setProperty("--ty", "0");
+    });
+  });
+}
+
+/* ---------- buttons lean toward the cursor ---------- */
+function magnetic(el, pull, lift){
+  if(!el || RM || COARSE) return;
+  let box = null;
+  el.addEventListener("pointerenter", () => { box = el.getBoundingClientRect(); });
+  el.addEventListener("pointermove", (e) => {
+    if(!box) return;
+    const dx = (e.clientX - (box.left + box.width/2)) / (box.width/2);
+    const dy = (e.clientY - (box.top + box.height/2)) / (box.height/2);
+    el.style.transform = "translate3d(" + (dx*pull).toFixed(1) + "px,"
+                       + (dy*pull*0.55 + lift).toFixed(1) + "px,0)";
+  });
+  el.addEventListener("pointerleave", () => { box = null; el.style.transform = ""; });
+}
+magnetic($(".cta"), 7, -2);
+magnetic($("#copy-mail"), 4, -1);
+magnetic($("#totop"), 5, 0);
+
+/* ---------- copy the address ---------- */
+const copyBtn = $("#copy-mail");
+if(copyBtn){
+  const label = copyBtn.querySelector("span");
+  let revert = 0;
+  copyBtn.addEventListener("click", () => {
+    const done = (ok) => {
+      clearTimeout(revert);
+      copyBtn.classList.toggle("done", ok);
+      label.textContent = ok ? "Copied" : "Select it";
+      revert = setTimeout(() => { copyBtn.classList.remove("done"); label.textContent = "Copy"; }, 1900);
+    };
+    /* clipboard needs a secure context and can still be refused */
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText("iamasr@duck.com").then(() => done(true), () => done(false));
+    } else {
+      done(false);
+    }
+  });
+}
+
+/* ---------- back to the top ---------- */
+const toTop = $("#totop");
+if(toTop){
+  toTop.addEventListener("click", () => {
+    scrollTo({top:0, behavior: RM ? "auto" : "smooth"});
+  });
+}
+
+/* ---------- keys ----------
+   Never while the viewer is open (it owns arrows and Escape), never
+   while someone is typing, never with a modifier held. */
+const FILTER_KEYS = {"1":"all","2":"film","3":"motion","4":"tech"};
+addEventListener("keydown", (e) => {
+  if(lb.hasAttribute("open")) return;
+  if(e.metaKey || e.ctrlKey || e.altKey) return;
+  const tag = (document.activeElement && document.activeElement.tagName || "").toLowerCase();
+  if(tag === "input" || tag === "textarea" || tag === "select") return;
+  const k = e.key.toLowerCase();
+  if(k === "g"){ setView(false); }
+  else if(k === "l"){ setView(true); }
+  else if(k === "t"){ $("#theme").click(); }
+  else if(FILTER_KEYS[e.key]){ applyFilter(FILTER_KEYS[e.key]); }
+  else return;
+  e.preventDefault();
+});
+
 /* ---------- scroll engine ----------
    One rAF loop drives the paper, the ruler, the cover field, the
    survey and the parallax. Nothing else reads layout mid-scroll. */
@@ -2025,6 +2320,7 @@ function measure(){
   }
   railH = rail.clientHeight;
   syncIndicators();
+  nudge();
   appliedSy = -1;
   plotLast = -1;
   lastProg = -1;
@@ -2061,6 +2357,7 @@ function applyFX(){
     mFill.style.width = (prog*100) + "%";
   }
   barEl.classList.toggle("is-stuck", sy > 12);
+  if(toTop) toTop.classList.toggle("show", sy > heroH * 0.75);
 
   const page = "P. " + String(1 + Math.round(prog*11)).padStart(2,"0");
   if(page !== lastPage){ lastPage = page; pageCode.textContent = page; mPg.textContent = page; }
@@ -2096,7 +2393,7 @@ function frameLoop(t){
   if(sy !== appliedSy || vel > 0.05){ appliedSy = sy; applyFX(); }
   fieldStep(t/1000);
   if(t - fieldPainted > FIELD_MS){ fieldPainted = t; drawField(); }
-  if(sy < heroH + 80){ autoSweep(t); drawWordmark(t); }
+  if(sy < heroH + 80 && wordmarkAwake()) drawWordmark(t);
   updatePlot(false);
   loopRaf = requestAnimationFrame(frameLoop);
 }
@@ -2107,6 +2404,7 @@ function paintAll(){
   cards.forEach((rec) => renderFrame(rec.cv, rec.item, rec.phase));
   if(lb.hasAttribute("open")) renderFrame(lbCanvas, PLATES[lbIdx], lbPhase);
   updatePlot(true);
+  nudge();
   drawWordmark(performance.now());
 }
 
