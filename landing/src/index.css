@@ -2,22 +2,164 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --font-heading: 'HelveticaNowDisplay-Medium', 'Helvetica Neue', Arial, sans-serif;
-  --font-body: 'HelveticaNowDisplayW01-Rg', 'Helvetica Neue', Arial, sans-serif;
+/* Both faces are served from this origin. Nothing on the page reaches
+   out to a font CDN, an analytics host or a video CDN - the whole thing
+   is this repository. */
+@font-face {
+  font-family: "Archivo";
+  src: url("/fonts/archivo-latin.woff2") format("woff2");
+  font-weight: 400 900;
+  font-stretch: 62% 125%;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/inter-latin.woff2") format("woff2");
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+html {
+  background-color: #7d0b1d;
+  scroll-behavior: smooth;
+}
+
+/* The fixed navbar must not sit on top of a heading you just jumped to. */
+section[id] {
+  scroll-margin-top: 76px;
 }
 
 body {
-  font-family: var(--font-body);
+  font-family: theme("fontFamily.inter");
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
-/* the typewriter caret */
-@keyframes blink {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
+@layer utilities {
+  /* Long-form sections arrive as you reach them. `data-in` latches, so
+     nothing replays when you scroll back up. */
+  .reveal {
     opacity: 0;
+    transform: translateY(26px);
+    transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+  }
+  .reveal[data-in="true"] {
+    opacity: 1;
+    transform: none;
+  }
+
+  @keyframes ticker {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+  .animate-ticker {
+    animation: ticker 38s linear infinite;
+  }
+
+  /* Tailwind emits `.font-podium { font-family }` from the config; this
+     adds the width axis that makes it read as a display face rather
+     than as body copy set large. */
+  .font-podium {
+    font-stretch: 116%;
+  }
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes scale-in {
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .animate-fade-up,
+  .animate-fade-up-delay-1,
+  .animate-fade-up-delay-2,
+  .animate-fade-up-delay-3,
+  .animate-fade-up-delay-4 {
+    opacity: 0;
+    animation: fade-up 0.8s ease-out forwards;
+  }
+
+  .animate-fade-up-delay-1 {
+    animation-delay: 0.2s;
+  }
+  .animate-fade-up-delay-2 {
+    animation-delay: 0.4s;
+  }
+  .animate-fade-up-delay-3 {
+    animation-delay: 0.6s;
+  }
+  .animate-fade-up-delay-4 {
+    animation-delay: 0.8s;
+  }
+
+  .animate-fade-in,
+  .animate-fade-in-delay {
+    opacity: 0;
+    animation: fade-in 0.8s ease-out forwards;
+  }
+
+  .animate-fade-in-delay {
+    animation-delay: 0.3s;
+  }
+
+  .animate-scale-in {
+    opacity: 0;
+    animation: scale-in 0.8s ease-out forwards;
+  }
+}
+
+/* Nothing arrives by animation for anyone who asked not to be moved -
+   it is all just there. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  [class*="animate-"] {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
   }
 }
