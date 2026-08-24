@@ -2,16 +2,6 @@ import { useEffect, useState } from "react";
 import { BRAND } from "../brand";
 import { useTypewriter } from "../hooks/useTypewriter";
 
-const GREETING =
-  "Glad you stopped in. Good taste tends to find us. Now, what are we building?";
-
-const ACTIONS = [
-  "Pitch us an idea",
-  "Come work here",
-  "Send a brief hello",
-  "See how we operate",
-] as const;
-
 function CopyIcon() {
   return (
     <svg
@@ -29,7 +19,7 @@ function CopyIcon() {
 }
 
 export default function Hero() {
-  const { displayed, done } = useTypewriter(GREETING);
+  const { displayed, done } = useTypewriter(BRAND.greeting);
 
   // The pills arrive on their own clock rather than waiting for the
   // sentence to finish typing.
@@ -94,7 +84,7 @@ export default function Hero() {
             transition: "opacity 0.4s ease, transform 0.4s ease",
           }}
         >
-          {ACTIONS.map((label) => (
+          {BRAND.actions.map((label) => (
             <button
               key={label}
               type="button"
@@ -110,7 +100,7 @@ export default function Hero() {
             className={`${pill} gap-2 border border-white bg-transparent text-white hover:bg-white hover:text-black sm:gap-3`}
           >
             <span>
-              Reach us:{" "}
+              {BRAND.reach}{" "}
               <span className="underline underline-offset-1">{BRAND.email}</span>
             </span>
             <CopyIcon />

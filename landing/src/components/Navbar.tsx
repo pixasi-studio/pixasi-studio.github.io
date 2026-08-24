@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { BRAND } from "../brand";
 
-const LINKS = ["Labs", "Studio", "Openings", "Shop"] as const;
-
 export default function Navbar() {
   const [open, setOpen] = useState(false);
 
@@ -28,12 +26,12 @@ export default function Navbar() {
 
         {/* desktop links */}
         <nav className="hidden items-center text-[23px] text-black md:flex">
-          {LINKS.map((link, i) => (
+          {BRAND.links.map((link, i) => (
             <span key={link}>
               <a href="#" className="transition-opacity hover:opacity-60">
                 {link}
               </a>
-              {i < LINKS.length - 1 && <span>,&nbsp;</span>}
+              {i < BRAND.links.length - 1 && <span>,&nbsp;</span>}
             </span>
           ))}
         </nav>
@@ -43,7 +41,7 @@ export default function Navbar() {
           href="#"
           className="hidden text-[23px] text-black underline underline-offset-2 transition-opacity hover:opacity-60 md:block"
         >
-          Get in touch
+          {BRAND.cta}
         </a>
 
         {/* mobile toggle */}
@@ -80,7 +78,7 @@ export default function Navbar() {
           pointerEvents: open ? "auto" : "none",
         }}
       >
-        {LINKS.map((link) => (
+        {BRAND.links.map((link) => (
           <a
             key={link}
             href="#"
@@ -95,7 +93,7 @@ export default function Navbar() {
           onClick={() => setOpen(false)}
           className="text-[32px] font-medium text-black underline underline-offset-2"
         >
-          Get in touch
+          {BRAND.cta}
         </a>
       </div>
     </>
