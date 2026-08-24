@@ -7,9 +7,14 @@ export const BRAND = {
   /** The main title, in the navbar. */
   logo: "anujsingh.notes",
 
-  /** Navbar sections, matching the notebook's entries. */
-  links: ["Practice", "Plates", "Method", "Signal"],
-  cta: "Get in touch",
+  /** Navbar sections. These are the notebook's entries, and they link to it. */
+  links: [
+    { label: "Practice", href: "/notes/#practice" },
+    { label: "Plates", href: "/notes/#plates" },
+    { label: "Method", href: "/notes/#method" },
+    { label: "Signal", href: "/notes/#signal" },
+  ],
+  cta: { label: "Get in touch", href: "/notes/#signal" },
 
   /** The two lines of the out-of-focus intro label. */
   introLine1: "Hey there, this is the field log,",
@@ -21,10 +26,10 @@ export const BRAND = {
 
   /** The white action pills. */
   actions: [
-    "Send a rough idea",
-    "See the plates",
-    "Say hello",
-    "How I work",
+    { label: "Send a rough idea", href: "/notes/#signal" },
+    { label: "See the plates", href: "/notes/#plates" },
+    { label: "Say hello", href: "mailto:iamasr@duck.com" },
+    { label: "How I work", href: "/notes/#method" },
   ],
 
   /** The outline pill: shown, and what the copy icon puts on the clipboard. */

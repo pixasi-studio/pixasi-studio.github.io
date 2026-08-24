@@ -1,18 +1,18 @@
-# anuj.fieldnotes
+# anujsingh.notes
 
-Working notebook of **Anuj Singh** — visuals, video & creative tech, kept in public.
+Anuj Singh — visuals, video & creative tech. One person, one desk.
 
-- `index.html` — the entire site. Self-contained: fonts are embedded as base64,
-  all artwork is drawn on `<canvas>`, no external requests, no build step.
-- `brand/` — the home-screen icon. The favicon is an inline SVG in the head.
+Two pages:
 
-> The GitHub org is still named `pixasi-studio`, which is what fixes the live
-> address at `pixasi-studio.github.io`. Renaming the org (and this repo to
-> `<new-org>.github.io`) is the one step that has to be done in GitHub's
-> settings; the canonical URL, `og:url`, `og:image` and the GitHub link in the
-> footer all point there and need updating together afterwards.
+| | | |
+|---|---|---|
+| `/` | **Landing** | Full-screen hero. The background video is scrubbed by horizontal mouse movement rather than played. React + TypeScript + Vite + Tailwind; source in `landing/`, built output at the root. |
+| `/notes/` | **The notebook** | A working log kept in public. One self-contained `index.html`: fonts embedded, artwork drawn on `<canvas>`, no external requests, no build step. |
 
-## What's interactive
+They link to each other — the landing page's nav and pills point at the
+notebook's entries, and the notebook's mark returns to the landing page.
+
+## What's interactive in the notebook
 
 Everything answers to either scrolling or tapping:
 
@@ -76,7 +76,12 @@ JavaScript off.
 
     python3 -m http.server 8000
 
-Then open <http://localhost:8000>.
+Serves both pages as deployed: <http://localhost:8000> for the landing
+page, <http://localhost:8000/notes/> for the notebook.
+
+To work on the landing page with hot reload instead:
+
+    cd landing && npm install && npm run dev
 
 ## Deploy
 

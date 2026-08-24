@@ -8,7 +8,7 @@ export default function Navbar() {
     <>
       <header className="fixed inset-x-0 top-0 z-10 flex items-center justify-between px-5 py-4 sm:px-8 sm:py-5">
         {/* logo */}
-        <a href="#" className="flex items-center gap-3">
+        <a href="/" className="flex items-center gap-3" aria-label="anujsingh.notes - home">
           <span
             className="text-[21px] tracking-tight text-black sm:text-[26px]"
             style={{ fontFamily: "var(--font-heading)" }}
@@ -27,9 +27,9 @@ export default function Navbar() {
         {/* desktop links */}
         <nav className="hidden items-center text-[23px] text-black md:flex">
           {BRAND.links.map((link, i) => (
-            <span key={link}>
-              <a href="#" className="transition-opacity hover:opacity-60">
-                {link}
+            <span key={link.label}>
+              <a href={link.href} className="transition-opacity hover:opacity-60">
+                {link.label}
               </a>
               {i < BRAND.links.length - 1 && <span>,&nbsp;</span>}
             </span>
@@ -38,10 +38,10 @@ export default function Navbar() {
 
         {/* desktop call to action */}
         <a
-          href="#"
+          href={BRAND.cta.href}
           className="hidden text-[23px] text-black underline underline-offset-2 transition-opacity hover:opacity-60 md:block"
         >
-          {BRAND.cta}
+          {BRAND.cta.label}
         </a>
 
         {/* mobile toggle */}
@@ -80,20 +80,20 @@ export default function Navbar() {
       >
         {BRAND.links.map((link) => (
           <a
-            key={link}
-            href="#"
+            key={link.label}
+            href={link.href}
             onClick={() => setOpen(false)}
             className="text-[32px] font-medium text-black"
           >
-            {link}
+            {link.label}
           </a>
         ))}
         <a
-          href="#"
+          href={BRAND.cta.href}
           onClick={() => setOpen(false)}
           className="text-[32px] font-medium text-black underline underline-offset-2"
         >
-          {BRAND.cta}
+          {BRAND.cta.label}
         </a>
       </div>
     </>
