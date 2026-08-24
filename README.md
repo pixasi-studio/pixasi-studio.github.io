@@ -24,9 +24,13 @@ Everything answers to either scrolling or tapping:
 - **Cover mark** — the name is rasterised, sampled onto a grid, and lives as a
   field of cells with their own physics. Each cell takes its colour from the
   field passing underneath, so the letterforms are windows onto the
-  background rather than paint on top of it. It follows a pointer or a
-  finger, sweeps itself when nobody is driving, and scatters as you scroll
-  away. Tap the plate to redraw it: `plot → ink → contour → scatter`.
+  background rather than paint on top of it. Tap the plate to redraw it:
+  `plot → ink → contour → scatter`.
+
+  **It holds still.** There is no idle sweep and no ambient wobble: it moves
+  only while a pointer, a finger or a device tilt is moving it, then settles
+  and stops being drawn at all. Cells carry a depth plane, so movement parts
+  the mark into layers rather than sliding one flat sheet.
 - **The paper** — ruled graph paper that drifts with scroll, with a second
   copy in red masked to a disc that follows the pointer (mouse only).
 - **One mark that slides** — nav, filters and the view toggle each move a
@@ -40,9 +44,30 @@ Everything answers to either scrolling or tapping:
   bands as you scroll, lighting the matching method as it goes.
 - **Marginalia** — the facts list pins open on tap.
 - **Margin ruler** — page count and scroll rate, read off the right edge.
+- **Depth** — plates tilt in real 3D toward whatever is pointing at them,
+  with their labels floating above the surface on `translateZ`; the viewer
+  arrives with perspective rather than a fade.
 - **Everything else** — the registration mark turns continuously and spins up
   on hover, form fields draw a rule under the caret, buttons fill from an
-  edge, and the footer strip breathes.
+  edge, the CTA and the copy button lean toward the cursor, and the footer
+  strip breathes.
+- **Keys** — `G`/`L` switch view, `1`–`4` filter, `T` inverts. Ignored while
+  the viewer is open or while you are typing.
+
+## Behaviour worth not regressing
+
+Three defects were found in an earlier audit, lost in a rebuild, and fixed
+again here. They are easy to reintroduce:
+
+- The viewer reads the **active filter**. Stepping must stay inside the
+  filtered set, and the counter must report position within it — not an
+  index into the full array.
+- The panel **contains focus**. `aria-modal` on a plain `<div>` is not
+  enforced, so everything outside goes `inert` and Tab wraps inside. `inert`
+  must be cleared *before* focus is restored, since an inert element refuses
+  it.
+- The **theme choice persists**, applied by a small script in `<head>` so a
+  returning visitor never sees the system theme flip to their choice.
 
 Reduced motion is respected throughout, and the page stays readable with
 JavaScript off.
