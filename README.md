@@ -6,11 +6,14 @@ Two pages:
 
 | | | |
 |---|---|---|
-| `/` | **Landing** | Full-screen hero. The backdrop is a plotted figure drawn on `<canvas>` and scrubbed by horizontal mouse movement. React + TypeScript + Vite + Tailwind; source in `landing/`, built output at the root. |
+| `/` | **Landing** | Full-screen hero: a wide display headline over a backdrop drawn on `<canvas>` - a lit room, a drifting key light and a plotted figure - that loops on its own and is pushed along by pointer or scroll. Self-hosted type, no external requests. React + TypeScript + Vite + Tailwind; source in `landing/`, built output at the root. |
 | `/notes/` | **The notebook** | A working log kept in public. One self-contained `index.html`: fonts embedded, artwork drawn on `<canvas>`, no external requests, no build step. |
 
-They link to each other — the landing page's nav and pills point at the
-notebook's entries, and the notebook's mark returns to the landing page.
+They link to each other — the landing page's nav, menu and button point at
+the notebook's entries, and the notebook's mark returns to the landing page.
+
+Both speak in the first person singular. This is one person at one desk;
+there is no "we" on either page, and a test fails on one.
 
 ## What's interactive in the notebook
 

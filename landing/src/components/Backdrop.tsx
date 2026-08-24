@@ -1,96 +1,221 @@
 import { useCallback, useEffect, useRef } from "react";
 
 /**
- * The full-screen backdrop, scrubbed by horizontal mouse movement rather
- * than played.
+ * The fullscreen backdrop.
  *
- * It is drawn rather than filmed. The original design used a hosted mp4,
- * which could not be relied on: it is a third party's file on a third
- * party's CDN, and re-encoding a replacement here produced VP9 inside an
- * MP4 - unplayable on iOS - in a fragmented container that reported the
- * wrong duration and refused to seek at all.
+ * The design called for a looping mp4 from a CloudFront bucket. That
+ * file is a third party's, on a host this site cannot reach, and it is
+ * the thing that failed last time - so the backdrop is drawn instead of
+ * filmed. There is no request to fail, no codec to be unsupported and
+ * no megabytes to ship; it is a few hundred bytes of arithmetic that
+ * fills any viewport at any pixel ratio.
  *
- * Drawing it removes every one of those problems. There is no request to
- * fail, no codec to be unsupported, no byte ranges to negotiate, and the
- * position is a number rather than a decoder state, so it scrubs exactly
- * and instantly at any point. It also weighs a few hundred bytes instead
- * of megabytes, and matches the notebook, which is drawn the same way.
+ * It loops on its own, the way the video would have, and pointer or
+ * scroll movement pushes it along faster - so moving over the page
+ * moves through a drawing being made. If real footage ever turns up,
+ * BackgroundVideo.tsx is the same element with a `src`, and a one-line
+ * swap in App.tsx.
  *
- * To use real footage instead, see BackgroundVideo.tsx - it takes the
- * same input and is a one-line swap in App.tsx.
+ * Two things keep the loop cheap enough to leave running on a phone.
+ * Everything that never changes - the room, the scrim, the grain, the
+ * vignette - is painted once into two plates and blitted, so a frame is
+ * two image copies rather than seven full-canvas fills. And it renders
+ * at one device pixel per CSS pixel: this is a soft, near-black image
+ * where a retina buffer costs four times the fill rate and buys
+ * nothing. Together they took a throttled phone from 4fps to a steady
+ * cap.
  */
 
-const SENSITIVITY = 0.8;
-const WALL_TOP = "#d8d5cf";
-const WALL_BOT = "#bdb9b2";
-const INK = "30,28,25";
-const ACCENT = "184,64,42";
-const PLOT = "46,99,137";
+const BASE_TOP = "#1b1a20";
+const BASE_BOT = "#0e0e11";
+const ACCENT = "184,64,42"; /* the notebook's rust */
+const PLOT = "86,132,168";
+const LOOP_SECONDS = 44;
+const NUDGE = 0.55; /* how far a full-width swipe pushes the loop */
+const NARROW = 768;
+
+interface Plates {
+  w: number;
+  h: number;
+  under: HTMLCanvasElement;
+  over: HTMLCanvasElement;
+}
+
+/** A tile of noise, generated once and repeated. */
+function grainTile() {
+  const tile = document.createElement("canvas");
+  tile.width = tile.height = 128;
+  const t = tile.getContext("2d");
+  if (!t) return null;
+  const img = t.createImageData(128, 128);
+  for (let i = 0; i < img.data.length; i += 4) {
+    const v = (Math.random() * 255) | 0;
+    img.data[i] = img.data[i + 1] = img.data[i + 2] = v;
+    img.data[i + 3] = 15;
+  }
+  t.putImageData(img, 0, 0);
+  return tile;
+}
+
+/**
+ * The two still layers: the room the light moves through, and
+ * everything that sits on top of the drawing.
+ */
+function buildPlates(w: number, h: number): Plates | null {
+  const narrow = w < NARROW;
+
+  const under = document.createElement("canvas");
+  under.width = w;
+  under.height = h;
+  const u = under.getContext("2d");
+  if (!u) return null;
+
+  const room = u.createLinearGradient(0, 0, 0, h);
+  room.addColorStop(0, BASE_TOP);
+  room.addColorStop(1, BASE_BOT);
+  u.fillStyle = room;
+  u.fillRect(0, 0, w, h);
+
+  const over = document.createElement("canvas");
+  over.width = w;
+  over.height = h;
+  const o = over.getContext("2d");
+  if (!o) return null;
+
+  /* The design overlays white type straight onto the footage. Rather
+     than trust whatever the frame happens to be, the contrast is drawn
+     in: the side the copy sits on is held dark, so the text keeps its
+     ratio however the loop moves. A phone's copy is the full width, so
+     its hold-back is too. */
+  const scrim = o.createLinearGradient(0, 0, w, 0);
+  if (narrow) {
+    scrim.addColorStop(0, "rgba(6,6,9,0.62)");
+    scrim.addColorStop(1, "rgba(6,6,9,0.5)");
+  } else {
+    scrim.addColorStop(0, "rgba(6,6,9,0.72)");
+    scrim.addColorStop(0.55, "rgba(6,6,9,0.36)");
+    scrim.addColorStop(1, "rgba(6,6,9,0.04)");
+  }
+  o.fillStyle = scrim;
+  o.fillRect(0, 0, w, h);
+
+  const foot = o.createLinearGradient(0, h * 0.55, 0, h);
+  foot.addColorStop(0, "rgba(4,4,6,0)");
+  foot.addColorStop(1, "rgba(4,4,6,0.55)");
+  o.fillStyle = foot;
+  o.fillRect(0, h * 0.55, w, h * 0.45);
+
+  const tile = grainTile();
+  const pattern = tile && o.createPattern(tile, "repeat");
+  if (pattern) {
+    o.fillStyle = pattern;
+    o.fillRect(0, 0, w, h);
+  }
+
+  const v = o.createRadialGradient(
+    w / 2,
+    h / 2,
+    Math.min(w, h) * 0.32,
+    w / 2,
+    h / 2,
+    Math.max(w, h) * 0.8
+  );
+  v.addColorStop(0, "rgba(0,0,0,0)");
+  v.addColorStop(1, "rgba(0,0,0,0.45)");
+  o.fillStyle = v;
+  o.fillRect(0, 0, w, h);
+
+  return { w, h, under, over };
+}
 
 export default function Backdrop() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const phase = useRef(0); // 0..1, the same role currentTime played
+  const phase = useRef(0); // 0..1, the role currentTime would have played
+  const plates = useRef<Plates | null>(null);
   const prevX = useRef<number | null>(null);
-  const queued = useRef(false);
+  const prevY = useRef<number | null>(null);
+  const raf = useRef(0);
+  const lastDraw = useRef(0);
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const dpr = Math.min(devicePixelRatio || 1, 2);
-    const w = canvas.clientWidth;
-    const h = canvas.clientHeight;
+    const w = Math.round(canvas.clientWidth);
+    const h = Math.round(canvas.clientHeight);
     if (!w || !h) return;
 
-    const nw = Math.round(w * dpr);
-    const nh = Math.round(h * dpr);
-    if (canvas.width !== nw || canvas.height !== nh) {
-      canvas.width = nw;
-      canvas.height = nh;
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w;
+      canvas.height = h;
     }
     const x = canvas.getContext("2d");
     if (!x) return;
-    x.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    const t = phase.current;
+    const still = plates.current;
+    if (!still || still.w !== w || still.h !== h) {
+      plates.current = buildPlates(w, h);
+    }
+    if (!plates.current) return;
 
-    // the wall
-    const g = x.createLinearGradient(0, 0, 0, h);
-    g.addColorStop(0, WALL_TOP);
-    g.addColorStop(1, WALL_BOT);
-    x.fillStyle = g;
+    const narrow = w < NARROW;
+    const turn = phase.current * Math.PI * 2;
+
+    x.drawImage(plates.current.under, 0, 0);
+
+    // a key light drifting across the room, warm, well right of the type
+    const lx = w * (0.66 + 0.13 * Math.sin(turn));
+    const ly = h * (0.3 + 0.12 * Math.cos(turn * 0.7));
+    const key = x.createRadialGradient(lx, ly, 0, lx, ly, Math.max(w, h) * 0.78);
+    key.addColorStop(0, "rgba(255,231,201,0.26)");
+    key.addColorStop(0.4, "rgba(255,231,201,0.09)");
+    key.addColorStop(1, "rgba(255,231,201,0)");
+    x.fillStyle = key;
     x.fillRect(0, 0, w, h);
 
-    // light from the upper left, so the type on that side stays readable
-    const lg = x.createRadialGradient(w * 0.18, h * 0.05, 0, w * 0.18, h * 0.05, w * 0.85);
-    lg.addColorStop(0, "rgba(255,253,248,0.55)");
-    lg.addColorStop(1, "rgba(255,253,248,0)");
-    x.fillStyle = lg;
-    x.fillRect(0, 0, w, h);
+    /* A harmonograph, the same figure the notebook draws. On a wide
+       screen it is held inside the band to the right of the copy; on a
+       phone the copy is the full width, so it sits low, faint, and is
+       allowed to run off the edge like a texture. */
+    const cx = w * (narrow ? 0.82 : 0.72);
+    const cy = h * (narrow ? 0.78 : 0.5);
+    const REACH = 1.5; /* the two damped terms reach 1 + 0.46 of R at i = 0 */
+    const R = narrow
+      ? Math.min(w, h) * 0.3
+      : Math.min(Math.min(w, h) * 0.33, (w - cx - 24) / REACH, (h / 2 - 24) / REACH);
+    const fade = narrow ? 0.42 : 1;
 
-    /* A harmonograph whose parameters drift with the scrub, so moving the
-       mouse moves through a drawing being made rather than a loop. Sits
-       right of centre, where the reference framed its subject. */
-    const cx = w * 0.68;
-    const cy = h * 0.52;
-    const R = Math.min(w, h) * 0.31;
-    const a1 = 2.02 + 0.6 * Math.sin(t * Math.PI * 2 * 0.5);
-    const a2 = 3.01 + 0.5 * Math.cos(t * Math.PI * 2 * 0.33);
-    const b1 = 1.99 + 0.4 * Math.cos(t * Math.PI * 2 * 0.42);
-    const b2 = 3.04 + 0.6 * Math.sin(t * Math.PI * 2 * 0.27);
-    const ph = t * Math.PI * 2;
+    /* Frequencies sit close to a 2:3 ratio and drift only slightly, so
+       the curve closes into a figure and slowly changes shape. Letting
+       them wander further makes a tangle rather than a drawing - which
+       is what the first pass at this looked like. */
+    const a1 = 2 + 0.05 * Math.sin(turn * 0.5);
+    const a2 = 3 + 0.04 * Math.cos(turn * 0.33);
+    const b1 = 3 + 0.05 * Math.cos(turn * 0.42);
+    const b2 = 2 + 0.04 * Math.sin(turn * 0.27);
     const px = (i: number) => {
       const s = i * 0.055;
       return (
-        R * Math.sin(a1 * s + ph) * Math.exp(-0.0021 * i) +
-        R * 0.46 * Math.sin(a2 * s) * Math.exp(-0.0031 * i)
+        R * Math.sin(a1 * s + turn) * Math.exp(-0.0016 * i) +
+        R * 0.46 * Math.sin(a2 * s) * Math.exp(-0.0024 * i)
       );
     };
     const py = (i: number) => {
       const s = i * 0.055;
       return (
-        R * Math.cos(b1 * s) * Math.exp(-0.0021 * i) +
-        R * 0.46 * Math.cos(b2 * s + 1.1) * Math.exp(-0.0031 * i)
+        R * Math.cos(b1 * s) * Math.exp(-0.0016 * i) +
+        R * 0.46 * Math.cos(b2 * s + 1.1) * Math.exp(-0.0024 * i)
       );
+    };
+
+    const step = narrow ? 3 : 2;
+    const trace = (from: number, to: number) => {
+      x.beginPath();
+      for (let i = from; i < to; i += step) {
+        const X = px(i);
+        const Y = py(i);
+        i === from ? x.moveTo(X, Y) : x.lineTo(X, Y);
+      }
+      x.stroke();
     };
 
     x.save();
@@ -98,109 +223,102 @@ export default function Backdrop() {
     x.lineJoin = "round";
     x.lineCap = "round";
 
-    x.strokeStyle = `rgba(${PLOT},0.34)`;
+    x.strokeStyle = `rgba(${PLOT},${0.22 * fade})`;
     x.lineWidth = 1;
-    x.beginPath();
-    for (let i = 0; i < 2000; i += 2) {
-      const X = px(i), Y = py(i);
-      i ? x.lineTo(X, Y) : x.moveTo(X, Y);
-    }
-    x.stroke();
+    trace(0, 2000);
 
-    x.strokeStyle = `rgba(${INK},0.62)`;
-    x.lineWidth = 1.4;
-    x.beginPath();
-    for (let i = 0; i < 1500; i += 2) {
-      const X = px(i), Y = py(i);
-      i ? x.lineTo(X, Y) : x.moveTo(X, Y);
-    }
-    x.stroke();
+    x.strokeStyle = `rgba(226,222,214,${0.28 * fade})`;
+    x.lineWidth = 1.3;
+    trace(0, 1500);
 
-    // the pen itself, at the head of the trace
+    // the pen, at the head of the trace
     const head = 1500;
-    x.strokeStyle = `rgba(${ACCENT},0.95)`;
+    x.strokeStyle = `rgba(${ACCENT},${0.85 * fade})`;
     x.lineWidth = 2;
+    trace(head - 200, head);
+    x.fillStyle = `rgba(${ACCENT},${fade})`;
     x.beginPath();
-    for (let i = head - 200; i < head; i += 2) {
-      const X = px(i), Y = py(i);
-      i === head - 200 ? x.moveTo(X, Y) : x.lineTo(X, Y);
-    }
-    x.stroke();
-    x.fillStyle = `rgb(${ACCENT})`;
-    x.beginPath();
-    x.arc(px(head - 1), py(head - 1), 3.4, 0, Math.PI * 2);
+    x.arc(px(head - 1), py(head - 1), 3.2, 0, Math.PI * 2);
     x.fill();
     x.restore();
 
-    // registration ticks, as on the notebook's plates
-    x.strokeStyle = `rgba(${INK},0.30)`;
-    x.lineWidth = 1;
-    const m = 34, k = 16;
-    ([[m, h - m, 1, -1], [w - m, h - m, -1, -1]] as const)
-      .forEach(([ax, ay, sx, sy]) => {
-        x.beginPath();
-        x.moveTo(ax, ay + sy * k);
-        x.lineTo(ax, ay);
-        x.lineTo(ax + sx * k, ay);
-        x.stroke();
-      });
-
-    // grain, then a printed vignette
-    x.save();
-    x.globalAlpha = 0.05;
-    x.fillStyle = "#000";
-    const grains = Math.floor((w * h) / 340);
-    for (let i = 0; i < grains; i++) {
-      x.fillRect((Math.random() * w) | 0, (Math.random() * h) | 0, 1, 1);
-    }
-    x.restore();
-
-    const v = x.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.34, w / 2, h / 2, Math.max(w, h) * 0.78);
-    v.addColorStop(0, "rgba(0,0,0,0)");
-    v.addColorStop(1, "rgba(40,36,30,0.22)");
-    x.fillStyle = v;
-    x.fillRect(0, 0, w, h);
+    x.drawImage(plates.current.over, 0, 0);
   }, []);
 
-  // one draw per frame at most, however many events arrive
-  const schedule = useCallback(() => {
-    if (queued.current) return;
-    queued.current = true;
-    requestAnimationFrame(() => {
-      queued.current = false;
-      draw();
-    });
-  }, [draw]);
-
   useEffect(() => {
-    draw();
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+    const coarse = matchMedia("(pointer: coarse)");
+    let running = !reduce.matches;
+    let last = performance.now();
+    let dirty = true;
 
-    const onMouseMove = (event: MouseEvent) => {
-      if (prevX.current === null) {
+    const frame = (now: number) => {
+      raf.current = requestAnimationFrame(frame);
+      const dt = Math.min(now - last, 250);
+      last = now;
+      if (running && !document.hidden) {
+        phase.current = (phase.current + dt / 1000 / LOOP_SECONDS) % 1;
+        dirty = true;
+      }
+      if (!dirty) return;
+      /* A phone spends its frame budget on scrolling, and this is a
+         slow drift behind opaque type - half the cadence is not
+         visible on it and is half the battery. */
+      const minFrame = 1000 / (coarse.matches ? 15 : 24);
+      if (now - lastDraw.current < minFrame) return;
+      lastDraw.current = now;
+      dirty = false;
+      draw();
+    };
+    raf.current = requestAnimationFrame(frame);
+
+    /* Movement pushes the loop forward on top of its own pace, which is
+       what made the last backdrop feel hand-driven. It stays live under
+       reduced motion, because a person moving the pointer is not the
+       page moving by itself. */
+    const nudge = (dx: number, dy: number) => {
+      phase.current = (phase.current + (dx / innerWidth + dy / innerHeight) * NUDGE + 1) % 1;
+      dirty = true;
+    };
+    const onPointer = (event: PointerEvent) => {
+      if (prevX.current === null || prevY.current === null) {
         prevX.current = event.clientX;
+        prevY.current = event.clientY;
         return;
       }
-      const delta = event.clientX - prevX.current;
+      nudge(event.clientX - prevX.current, event.clientY - prevY.current);
       prevX.current = event.clientX;
-      phase.current = Math.min(1, Math.max(0, phase.current + (delta / innerWidth) * SENSITIVITY));
-      schedule();
+      prevY.current = event.clientY;
     };
-    const onResize = () => schedule();
+    const onScroll = () => nudge(0, 24);
+    const onResize = () => {
+      dirty = true;
+      lastDraw.current = 0;
+    };
+    const onMotion = () => {
+      running = !reduce.matches;
+      dirty = true;
+    };
 
-    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("pointermove", onPointer, { passive: true });
+    window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onResize);
+    reduce.addEventListener("change", onMotion);
     return () => {
-      window.removeEventListener("mousemove", onMouseMove);
+      cancelAnimationFrame(raf.current);
+      window.removeEventListener("pointermove", onPointer);
+      window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onResize);
+      reduce.removeEventListener("change", onMotion);
     };
-  }, [draw, schedule]);
+  }, [draw]);
 
   return (
     <canvas
       ref={canvasRef}
       aria-hidden="true"
-      className="fixed inset-0 z-0 h-full w-full"
-      style={{ backgroundColor: WALL_BOT }}
+      className="fixed inset-0 -z-10 h-full w-full"
+      style={{ backgroundColor: BASE_BOT }}
     />
   );
 }

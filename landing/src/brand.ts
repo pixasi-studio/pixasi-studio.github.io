@@ -1,38 +1,55 @@
 /**
- * Every string on the page. The layout, motion and type scale come from
- * the supplied design; the content is anujsingh.notes', in the same
- * first-person voice as the rest of the site.
+ * Every string on the page, in one place.
+ *
+ * The layout, type scale and motion come from the supplied design. The
+ * words are mine, and they are first person singular throughout: this
+ * is one person at one desk, not a collective, so there is no "we"
+ * anywhere on the page and a test fails the build if one appears.
+ *
+ * The design's numbers ("250+ brands transformed", "95% client
+ * retention", "10+ years in the game") were an agency's claims, not
+ * mine, so they are replaced with three that are true. Change them
+ * here and nowhere else.
  */
 export const BRAND = {
-  /** The main title, in the navbar. */
+  /** The wordmark, in the navbar and at the top of the mobile menu. */
   logo: "anujsingh.notes",
 
-  /** Navbar sections. These are the notebook's entries, and they link to it. */
+  /** The notebook's sections. Every link goes into it. */
   links: [
-    { label: "Practice", href: "/notes/#practice" },
     { label: "Plates", href: "/notes/#plates" },
+    { label: "Practice", href: "/notes/#practice" },
     { label: "Method", href: "/notes/#method" },
     { label: "Signal", href: "/notes/#signal" },
   ],
-  cta: { label: "Get in touch", href: "/notes/#signal" },
 
-  /** The two lines of the out-of-focus intro label. */
-  introLine1: "Hey there, this is the field log,",
-  introLine2: "visuals, video and creative tech by Anuj Singh",
+  /** The bordered navbar button, and the same button in the menu. */
+  cta: { label: "Get in touch", href: "mailto:iamasr@duck.com" },
 
-  /** Typed one character at a time. */
-  greeting:
-    "Glad you stopped in. Everything here started as a note. So, what can I make you?",
-
-  /** The white action pills. */
-  actions: [
-    { label: "Send a rough idea", href: "/notes/#signal" },
-    { label: "See the plates", href: "/notes/#plates" },
-    { label: "Say hello", href: "mailto:iamasr@duck.com" },
-    { label: "How I work", href: "/notes/#method" },
-  ],
-
-  /** The outline pill: shown, and what the copy icon puts on the clipboard. */
-  reach: "Reach me:",
+  /** Shown under the menu's button so the address is readable, not just linked. */
   email: "iamasr@duck.com",
+
+  /** The small tracked line above the headline, next to the crown. */
+  tagline: "One person, one desk",
+
+  /** Three lines, one word each. */
+  heading: ["Notice.", "Sketch.", "Ship."],
+
+  /** Two lines, then the part that is set in solid white. */
+  subtextLine1: "I make visuals, video and creative tech.",
+  subtextLine2: "Every job is mine end to end —",
+  subtextStrong: "and it ships.",
+
+  /** The black button. */
+  action: { label: "See the plates", href: "/notes/#plates" },
+
+  /** The badge beside it, next to the award mark. */
+  badge: ["One person", "Start to finish"],
+
+  /** The row along the bottom. */
+  stats: [
+    { value: "01", label: "Person on every job" },
+    { value: "00", label: "Handoffs" },
+    { value: "OPEN", label: "Notebook, in public" },
+  ],
 } as const;
